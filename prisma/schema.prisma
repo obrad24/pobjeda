@@ -1,0 +1,308 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum Position {
+  GK
+  DF
+  MF
+  WG
+  FW
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+enum CardType {
+  YELLOW
+  RED
+  SECOND_YELLOW
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Player {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  birthYear    Int?
+  jerseyNumber Int?
+  position     Position
+  image        String?
+  formerClubs  String?
+  slug         String   @unique
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  appearances     MatchPlayer[]
+  goals           MatchGoal[]          @relation("GoalsScored")
+  assists         MatchGoal[]          @relation("Assists")
+  cards           MatchCard[]
+  penaltyMisses   MatchPenaltyMiss[]
+  fantasyPoints   FantasyMatchPoints[]
+
+  @@index([active])
+  @@index([lastName, firstName])
+}
+
+model Team {
+  id            String   @id @default(cuid())
+  name          String
+  logo          String?
+  city          String?
+  sportdcTeamId Int      @unique
+  sportdcName   String
+  isOurTeam     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  homeMatches Match[] @relation("HomeMatches")
+  awayMatches Match[] @relation("AwayMatches")
+
+  @@index([isOurTeam])
+}
+
+model Season {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  startDate DateTime? @db.Date
+  endDate   DateTime? @db.Date
+  active    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  leagues      League[]
+  matches      Match[]
+  fantasyRules FantasyScoringRule[]
+
+  @@index([active])
+}
+
+model League {
+  id              String   @id @default(cuid())
+  name            String
+  seasonId        String
+  season          Season   @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  sportdcLeagueId Int
+  sportdcUrl      String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  matches   Match[]
+  standings LeagueStanding[]
+
+  @@unique([seasonId, sportdcLeagueId])
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCESS
+  ERROR
+}
+
+model SyncRun {
+  id                String     @id @default(cuid())
+  source            String     @default("SPORTDC")
+  status            SyncStatus
+  startedAt         DateTime   @default(now())
+  finishedAt        DateTime?
+  errorMessage      String?    @db.Text
+  warningMessage    String?    @db.Text
+  teamsUpserted     Int        @default(0)
+  matchesUpserted   Int        @default(0)
+  standingsUpserted Int        @default(0)
+  roundsFetched     Int        @default(0)
+
+  @@index([status, startedAt])
+}
+
+model LeagueStanding {
+  id           String   @id @default(cuid())
+  leagueId     String
+  league       League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  sportdcTeamId Int
+  position     Int
+  played       Int
+  won          Int
+  drawn        Int
+  lost         Int
+  goalsFor     Int
+  goalsAgainst Int
+  goalDiff     Int
+  points       Int
+  updatedAt    DateTime @updatedAt
+
+  @@unique([leagueId, sportdcTeamId])
+  @@index([leagueId, position])
+}
+
+model Match {
+  id             String      @id @default(cuid())
+  seasonId       String
+  season         Season      @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  leagueId       String
+  league         League      @relation(fields: [leagueId], references: [id], onDelete: Restrict)
+  homeTeamId     String
+  homeTeam       Team        @relation("HomeMatches", fields: [homeTeamId], references: [id], onDelete: Restrict)
+  awayTeamId     String
+  awayTeam       Team        @relation("AwayMatches", fields: [awayTeamId], references: [id], onDelete: Restrict)
+  sportdcMatchId Int         @unique
+  date           DateTime
+  time           String?
+  stadium        String?
+  round          Int
+  status         MatchStatus @default(SCHEDULED)
+  homeScore      Int?
+  awayScore      Int?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  lineups         MatchPlayer[]
+  goals           MatchGoal[]
+  cards           MatchCard[]
+  penaltyMisses   MatchPenaltyMiss[]
+  concededGoals   MatchConcededGoal[]
+  fantasyPoints   FantasyMatchPoints[]
+
+  @@index([seasonId, round])
+  @@index([leagueId, round])
+  @@index([date])
+  @@index([homeTeamId, awayTeamId])
+  @@index([status])
+}
+
+model MatchPlayer {
+  id            String  @id @default(cuid())
+  matchId       String
+  match         Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId      String
+  player        Player  @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  starter       Boolean @default(true)
+  minutes       Int?
+  enteredAt     Int?
+  substitutedAt Int?
+  goals         Int     @default(0)
+  assists       Int     @default(0)
+  yellowCards   Int     @default(0)
+  redCards      Int     @default(0)
+  saves         Int     @default(0)
+  penaltySaves  Int     @default(0)
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+}
+
+model MatchGoal {
+  id             String  @id @default(cuid())
+  matchId        String
+  match          Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId       String
+  player         Player  @relation("GoalsScored", fields: [playerId], references: [id], onDelete: Restrict)
+  assistPlayerId String?
+  assistPlayer   Player? @relation("Assists", fields: [assistPlayerId], references: [id], onDelete: Restrict)
+  minute         Int
+  ownGoal        Boolean @default(false)
+
+  @@index([matchId])
+  @@index([playerId])
+}
+
+model MatchPenaltyMiss {
+  id       String @id @default(cuid())
+  matchId  String
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  minute   Int
+
+  @@index([matchId])
+  @@index([playerId])
+}
+
+model MatchConcededGoal {
+  id      String @id @default(cuid())
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  minute  Int
+
+  @@index([matchId])
+}
+
+model FantasyScoringRule {
+  id        String   @id @default(cuid())
+  seasonId  String
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Restrict)
+  key       String
+  name      String
+  points    Int
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([seasonId, key])
+  @@index([seasonId, active])
+}
+
+model FantasyMatchPoints {
+  id           String   @id @default(cuid())
+  matchId      String
+  match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId     String
+  player       Player   @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  points       Int
+  breakdown    Json
+  calculatedAt DateTime @default(now())
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+  @@index([matchId])
+}
+
+model MatchCard {
+  id       String   @id @default(cuid())
+  matchId  String
+  match    Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerId String
+  player   Player   @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  type     CardType
+  minute   Int
+
+  @@index([matchId])
+  @@index([playerId])
+}
+
+model ClubHistory {
+  id        String   @id @default(cuid())
+  title     String
+  body      String   @db.Text
+  year      Int?
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}

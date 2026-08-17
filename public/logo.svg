@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" role="img" aria-label="FK Pobjeda Trijeanica">
+  <path d="M32 2L58 12v22c0 16.5-11.2 31.2-26 36.8C17.2 65.2 6 50.5 6 34V12L32 2Z" fill="#172B4D"/>
+  <path d="M32 6.2L54 14.4v19.2c0 14.2-9.5 26.8-22 31.7C19.5 60.4 10 47.8 10 33.6V14.4L32 6.2Z" fill="#0D1B2F"/>
+  <path d="M32 2L58 12v22c0 16.5-11.2 31.2-26 36.8C17.2 65.2 6 50.5 6 34V12L32 2Z" stroke="#C89A32" stroke-width="2"/>
+  <path d="M14 22h36" stroke="#C62828" stroke-width="2"/>
+  <path d="M24.5 28h8.2c6.2 0 10.3 3.4 10.3 9.1 0 5.8-4.2 9.2-10.5 9.2H24.5V28Zm5.8 13.7h2.7c3.1 0 4.8-1.6 4.8-4.5s-1.7-4.5-4.8-4.5h-2.7v9Z" fill="#C89A32"/>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sportdc-sync",
+      "schedule": "0 */2 * * *"
+    }
+  ]
+}

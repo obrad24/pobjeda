@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --gold: #c89a32;
+  --gold-light: #d8af4a;
+  --gold-dark: #a8791f;
+  --navy: #172b4d;
+  --navy-dark: #0d1b2f;
+  --red: #c62828;
+  --red-dark: #991b1b;
+  --white: #ffffff;
+  --cream: #f7f4ea;
+  --ink: #111827;
+  --muted: #64748b;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-navy: var(--navy);
+  --color-navy-dark: var(--navy-dark);
+  --color-red: var(--red);
+  --color-red-dark: var(--red-dark);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-barlow);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--navy);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--navy-dark);
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.hero-panel {
+  background-color: var(--navy-dark);
+  background-image:
+    linear-gradient(180deg, rgba(13, 27, 47, 0.94), rgba(23, 43, 77, 0.92)),
+    repeating-linear-gradient(
+      -18deg,
+      transparent,
+      transparent 14px,
+      rgba(200, 154, 50, 0.07) 14px,
+      rgba(200, 154, 50, 0.07) 15px
+    );
+  border-top: 2px solid var(--red);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 640px;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
 }

@@ -1,0 +1,68 @@
+import Link from "next/link";
+
+export function Container({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={`mx-auto w-full max-w-6xl px-4 sm:px-6 ${className}`}>{children}</div>;
+}
+
+export function SectionHeading({
+  eyebrow,
+  title,
+  href,
+  actionLabel = "Pogledaj sve",
+}: {
+  eyebrow?: string;
+  title: string;
+  href?: string;
+  actionLabel?: string;
+}) {
+  return (
+    <div className="mb-6 flex items-end justify-between gap-4">
+      <div>
+        {eyebrow ? (
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-gold-dark">{eyebrow}</p>
+        ) : null}
+        <h2 className="font-display text-2xl font-semibold tracking-wide text-navy sm:text-3xl">{title}</h2>
+      </div>
+      {href ? (
+        <Link href={href} className="shrink-0 text-sm font-medium text-navy hover:text-gold-dark">
+          {actionLabel}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+}) {
+  return (
+    <div className="mb-8 border-b border-navy/10 pb-6">
+      {eyebrow ? (
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-gold-dark">{eyebrow}</p>
+      ) : null}
+      <h1 className="font-display text-3xl font-semibold tracking-wide text-navy sm:text-4xl">{title}</h1>
+      {description ? <p className="mt-3 max-w-2xl text-muted">{description}</p> : null}
+    </div>
+  );
+}
+
+export function EmptyState({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-xl border border-navy/10 bg-white px-5 py-8 text-center">
+      <p className="font-display text-lg text-navy">{title}</p>
+      <p className="mt-2 text-sm text-muted">{body}</p>
+    </div>
+  );
+}
