@@ -92,15 +92,15 @@ CI (GitHub Actions `.github/workflows/ci.yml`): `npm test`, `lint`, `tsc --noEmi
   "crons": [
     {
       "path": "/api/cron/sportdc-sync",
-      "schedule": "0 */2 * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }
 ```
 
-Vercel šalje `Authorization: Bearer $CRON_SECRET`. Ruta odbija zahtjev bez ispravnog Bearer-a (401). Bez `CRON_SECRET` u env → 500.
+Hobby dozvoljava **jedan** Vercel Cron dnevno. `0 6 * * *` je 06:00 UTC (08:00 u Sarajevu ljeti). Češći sync: dugme **SINHRONIZUJ SADA** ili GitHub Actions (`.github/workflows/sportdc-sync.yml`) koje zove isti endpoint sa `CRON_SECRET`. Pro plan nije potreban za tu varijantu.
 
-Hobby plan dozvoljava ograničen cron (često 1× dnevno). Ako 2-satni raspored nije prihvaćen, koristi npr. `0 6 * * *` i ručno **SINHRONIZUJ SADA** iz `/admin/liga`.
+Vercel šalje `Authorization: Bearer $CRON_SECRET`. Ruta odbija zahtjev bez ispravnog Bearer-a (401). Bez `CRON_SECRET` u env → 500.
 
 ## 8. SportDC sync
 

@@ -142,13 +142,13 @@ Client validacija je UX, nije zaštita.
   "crons": [
     {
       "path": "/api/cron/sportdc-sync",
-      "schedule": "0 7-23/2 * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }
 ```
 
-Svaka 2 sata 07–23 Europe/Sarajevo nije nativni TZ u Vercel Cron (UTC). U dokumentaciji deploymenta fiksirati UTC ekvivalent. Liga nije live-critical.
+Hobby: jednom dnevno (06:00 UTC). Češće: admin sync ili GitHub Actions `sportdc-sync.yml`.
 
 ## Env koje API koristi
 
