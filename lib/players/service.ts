@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { Position, type Player } from "../../generated/prisma";
 import { prisma } from "../db/prisma";
 import { NotFoundError, ValidationError } from "../errors";
@@ -54,35 +55,38 @@ async function assertUniqueJersey(jerseyNumber: number | null | undefined, exclu
   }
 }
 
-export async function getPlayers(options?: ListPlayersQuery): Promise<Player[]> {
-  const query = parseOrThrow(listPlayersQuerySchema, options ?? {});
-
+const loadPlayers = cache(async function loadPlayers(includeInactive: string, position: string) {
   return prisma.player.findMany({
     where: {
-      ...(query.includeInactive ? {} : { active: true }),
-      ...(query.position ? { position: query.position } : {}),
+      ...(includeInactive === "1" ? {} : { active: true }),
+      ...(position ? { position: position as Position } : {}),
     },
     orderBy: [{ jerseyNumber: "asc" }, { lastName: "asc" }, { firstName: "asc" }],
   });
+});
+
+export async function getPlayers(options?: ListPlayersQuery): Promise<Player[]> {
+  const query = parseOrThrow(listPlayersQuerySchema, options ?? {});
+  return loadPlayers(query.includeInactive ? "1" : "0", query.position ?? "");
 }
 
-export async function getPlayer(id: string): Promise<Player> {
+export const getPlayer = cache(async function getPlayer(id: string): Promise<Player> {
   const playerId = parseOrThrow(playerIdSchema, id);
   const player = await prisma.player.findUnique({ where: { id: playerId } });
   if (!player) {
     throw new NotFoundError("Igrač nije pronađen");
   }
   return player;
-}
+});
 
-export async function getPlayerBySlug(slug: string): Promise<Player> {
+export const getPlayerBySlug = cache(async function getPlayerBySlug(slug: string): Promise<Player> {
   const value = parseOrThrow(playerSlugParamSchema, slug);
   const player = await prisma.player.findUnique({ where: { slug: value } });
   if (!player) {
     throw new NotFoundError("Igrač nije pronađen");
   }
   return player;
-}
+});
 
 export async function createPlayer(input: CreatePlayerInput): Promise<Player> {
   const data = parseOrThrow(createPlayerSchema, input);

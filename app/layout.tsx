@@ -48,9 +48,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="sr-Latn"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-cream font-sans text-navy">{children}</body>
+      <body suppressHydrationWarning className="min-h-full bg-cream font-sans text-navy">
+        {children}
+      </body>
     </html>
   );
 }

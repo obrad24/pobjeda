@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Container, EmptyState, PageHeader } from "@/components/ui/Section";
-import { getClubHistory } from "@/lib/history";
+import { getCachedHistory } from "@/lib/site-data";
 
 export const revalidate = 300;
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HistoryPage() {
-  const entries = await getClubHistory();
+  const entries = await getCachedHistory();
 
   return (
     <div>

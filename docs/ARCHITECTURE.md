@@ -89,7 +89,7 @@ components/
   admin/                     # forme i tabele
   ui/                        # Button, Card, Badge
 lib/
-  db/prisma.ts               # PrismaClient + Neon/pg adapter
+  db/prisma.ts               # PrismaClient + PrismaPg adapter
   context.ts                 # aktivna sezona, naš tim, liga
   players/                   # CRUD igrača
   matches/                   # Neon upiti utakmica (javni sajt)

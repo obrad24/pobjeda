@@ -51,6 +51,7 @@ function StatList({
             <li key={row.playerId}>
               <Link
                 href={`/igraci/${row.player.slug}`}
+                prefetch={false}
                 className="flex items-center justify-between gap-3 py-2.5 hover:text-gold-dark"
               >
                 <span className="min-w-0 truncate">

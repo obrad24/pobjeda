@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Player, Season } from "../../generated/prisma";
 import { getOurTeam, resolveSeason } from "../context";
 import { prisma } from "../db/prisma";
@@ -93,7 +94,8 @@ function parseSort(value: string | undefined): FantasySort {
   return FANTASY_SORTS.includes(value as FantasySort) ? (value as FantasySort) : "points";
 }
 
-async function loadPointRows(seasonId: string, round?: number) {
+const loadPointRowsCached = cache(async function loadPointRowsCached(seasonId: string, roundKey: string) {
+  const round = roundKey === "*" ? undefined : Number(roundKey);
   const ourTeam = await getOurTeam();
   return prisma.fantasyMatchPoints.findMany({
     where: {
@@ -106,6 +108,10 @@ async function loadPointRows(seasonId: string, round?: number) {
     include: pointsInclude,
     orderBy: [{ match: { date: "asc" } }, { points: "desc" }],
   });
+});
+
+async function loadPointRows(seasonId: string, round?: number) {
+  return loadPointRowsCached(seasonId, round == null ? "*" : String(round));
 }
 
 function sortRows(rows: FantasyLeaderboardRow[], sort: FantasySort): FantasyLeaderboardRow[] {

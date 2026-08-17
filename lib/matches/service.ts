@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { Prisma } from "../../generated/prisma";
 import { getOurTeam, resolveLeague } from "../context";
 import { prisma } from "../db/prisma";
@@ -8,8 +9,8 @@ import { idSchema, matchListQuerySchema, type MatchListQuery } from "../validati
 export const matchListInclude = {
   homeTeam: true,
   awayTeam: true,
-  season: true,
-  league: true,
+  season: { select: { id: true, name: true } },
+  league: { select: { id: true, name: true } },
 } satisfies Prisma.MatchInclude;
 
 export const matchDetailInclude = {
@@ -76,7 +77,7 @@ export async function getMatches(options?: MatchListQuery): Promise<MatchListIte
   });
 }
 
-export async function getMatch(id: string): Promise<MatchDetail> {
+export const getMatch = cache(async function getMatch(id: string): Promise<MatchDetail> {
   const matchId = parseOrThrow(idSchema, id);
   const match = await prisma.match.findUnique({
     where: { id: matchId },
@@ -88,7 +89,7 @@ export async function getMatch(id: string): Promise<MatchDetail> {
   }
 
   return match;
-}
+});
 
 export async function getMatchBySportDcId(sportdcMatchId: number): Promise<MatchDetail> {
   if (!Number.isInteger(sportdcMatchId) || sportdcMatchId <= 0) {

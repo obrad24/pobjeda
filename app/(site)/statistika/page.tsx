@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { sortPlayerStats, STAT_SORTS, StatsTable, type StatSort } from "@/components/players/StatsTable";
 import { Container, EmptyState, PageHeader } from "@/components/ui/Section";
-import { getSeasonPlayerStatistics } from "@/lib/stats";
+import { getCachedSeasonStats } from "@/lib/site-data";
 
 export const metadata: Metadata = {
   title: "Statistika",
@@ -20,7 +20,7 @@ export default async function StatisticsPage({
 }) {
   const params = await searchParams;
   const sort = parseSort(params.sort);
-  const rows = sortPlayerStats(await getSeasonPlayerStatistics(), sort);
+  const rows = sortPlayerStats(await getCachedSeasonStats(), sort);
 
   return (
     <Container className="py-10 sm:py-14">

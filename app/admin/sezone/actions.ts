@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { withError, withToast } from "@/lib/admin/paths";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { ValidationError } from "@/lib/errors";
+import { CACHE_TAGS, revalidatePublic } from "@/lib/query-cache";
 import { activateSeason, createSeason, deactivateSeason, updateSeason } from "@/lib/seasons";
 
 function seasonFromForm(formData: FormData) {
@@ -24,6 +25,7 @@ function revalidateSeasons() {
   revalidatePath("/admin");
   revalidatePath("/admin/sezone");
   revalidatePath("/admin/liga");
+  revalidatePublic(CACHE_TAGS.league, CACHE_TAGS.stats, CACHE_TAGS.fantasy);
 }
 
 export async function createSeasonAction(formData: FormData) {

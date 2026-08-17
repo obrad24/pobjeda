@@ -3,7 +3,8 @@ import { FixturesList } from "@/components/league/FixturesList";
 import { StandingsTable } from "@/components/league/StandingsTable";
 import { Container, EmptyState, PageHeader, SectionHeading } from "@/components/ui/Section";
 import { getOurTeam, resolveLeague } from "@/lib/context";
-import { getSchedule, getStandings } from "@/lib/league";
+import { getCachedStandings } from "@/lib/site-data";
+import { getUpcomingMatches } from "@/lib/matches";
 
 export const revalidate = 120;
 
@@ -13,16 +14,12 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaguePage() {
-  const [league, standings, schedule, ourTeam] = await Promise.all([
+  const [league, standings, upcoming, ourTeam] = await Promise.all([
     resolveLeague(),
-    getStandings(),
-    getSchedule(),
+    getCachedStandings(),
+    getUpcomingMatches({ ourTeamOnly: false, includeFriendlies: false, limit: 7 }),
     getOurTeam(),
   ]);
-
-  const upcoming = schedule.matches
-    .filter((match) => match.status === "SCHEDULED" || match.status === "POSTPONED")
-    .slice(0, 7);
 
   return (
     <Container className="py-10 sm:py-14">

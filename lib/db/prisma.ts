@@ -1,13 +1,27 @@
-import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma";
 
 function createAdapter(connectionString: string) {
-  if (connectionString.includes("neon.tech")) {
-    return new PrismaNeon({ connectionString });
+  const serverless = Boolean(process.env.VERCEL);
+  return new PrismaPg({
+    connectionString: connectionString.replaceAll("sslmode=require", "sslmode=verify-full"),
+    max: serverless ? 4 : 10,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 15_000,
+  });
+}
+
+function toPlainError(error: unknown): Error {
+  if (error instanceof Error) {
+    const code = "code" in error && typeof error.code === "string" ? error.code : undefined;
+    const message = [code, error.message].filter(Boolean).join(": ") || "Database error";
+    const wrapped = new Error(message);
+    wrapped.name = error.name || "PrismaError";
+    wrapped.cause = error;
+    return wrapped;
   }
 
-  return new PrismaPg({ connectionString });
+  return new Error(String(error));
 }
 
 export function createPrismaClient() {
@@ -17,13 +31,25 @@ export function createPrismaClient() {
     throw new Error("DATABASE_URL is not set");
   }
 
-  return new PrismaClient({
+  const client = new PrismaClient({
     adapter: createAdapter(connectionString),
+  });
+
+  return client.$extends({
+    query: {
+      async $allOperations({ args, query }) {
+        try {
+          return await query(args);
+        } catch (error) {
+          throw toPlainError(error);
+        }
+      },
+    },
   });
 }
 
 const globalForPrisma = globalThis as unknown as {
-  prisma?: PrismaClient;
+  prisma?: ReturnType<typeof createPrismaClient>;
 };
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

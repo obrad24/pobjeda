@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { authorizeCronRequest } from "@/lib/auth/cron";
+import { CACHE_TAGS, revalidatePublic } from "@/lib/query-cache";
 import { syncSportDCLeague } from "@/lib/sportdc/sync";
 
 export const maxDuration = 60;
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
     revalidatePath("/");
     revalidatePath("/liga");
     revalidatePath("/rezultati");
+    revalidatePublic(CACHE_TAGS.league);
     return Response.json(result, { status: result.ok ? 200 : 502 });
   } catch (error) {
     if ((error as { code?: string }).code === "SYNC_IN_PROGRESS") {

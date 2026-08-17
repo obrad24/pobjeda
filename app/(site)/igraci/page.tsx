@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PlayerCard } from "@/components/players/PlayerCard";
 import { Container, PageHeader } from "@/components/ui/Section";
 import { POSITION_ORDER, positionLabel } from "@/lib/format";
-import { getPlayers } from "@/lib/players";
+import { getCachedPlayers } from "@/lib/site-data";
 
 export const revalidate = 120;
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PlayersPage() {
-  const players = await getPlayers();
+  const players = await getCachedPlayers();
 
   return (
     <Container className="py-10 sm:py-14">

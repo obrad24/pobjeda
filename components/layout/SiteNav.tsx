@@ -43,7 +43,7 @@ export function SiteNav() {
         {NAV_LINKS.map((link) => {
           const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
           return (
-            <Link key={link.href} href={link.href} className={linkClass(active)}>
+            <Link key={link.href} href={link.href} prefetch={false} className={linkClass(active)}>
               {link.label}
             </Link>
           );
@@ -80,6 +80,7 @@ export function SiteNav() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  prefetch={false}
                   onClick={() => setOpen(false)}
                   className={`border-b border-white/10 py-4 font-display text-2xl ${
                     active ? "text-gold" : "text-white"

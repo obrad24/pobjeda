@@ -6,6 +6,7 @@ import { withError, withToast } from "@/lib/admin/paths";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { ValidationError } from "@/lib/errors";
 import { createHistoryEntry, deleteHistoryEntry, updateHistoryEntry } from "@/lib/history";
+import { CACHE_TAGS, revalidatePublic } from "@/lib/query-cache";
 
 function optionalInt(value: FormDataEntryValue | null): number | null {
   const text = String(value ?? "").trim();
@@ -26,6 +27,7 @@ function historyFromForm(formData: FormData) {
 function revalidateHistory() {
   revalidatePath("/istorija");
   revalidatePath("/admin/istorija");
+  revalidatePublic(CACHE_TAGS.history);
 }
 
 export async function createHistoryAction(formData: FormData) {

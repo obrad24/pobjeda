@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { CACHE_TAGS, revalidatePublic } from "@/lib/query-cache";
 import { redirect } from "next/navigation";
 import { withError, withToast } from "@/lib/admin/paths";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -17,6 +18,7 @@ export async function triggerSyncAction() {
     revalidatePath("/admin");
     revalidatePath("/admin/liga");
     revalidatePath("/admin/utakmice");
+    revalidatePublic(CACHE_TAGS.league);
 
     if (!result.ok) {
       redirect(withError("/admin/liga", result.errorMessage ?? "Sync nije uspio"));

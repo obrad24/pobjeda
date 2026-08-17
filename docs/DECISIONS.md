@@ -68,7 +68,11 @@ Samo scaffold + dokumentacija + TASKS.md. Prisma schema i parser čekaju Phase 2
 
 ## 2026-08-17 — Prisma 7 + Neon/pg adapteri
 
-Prisma 7.9: `url` nije u `schema.prisma`; CLI koristi `prisma.config.ts` + `DIRECT_URL`. Runtime `PrismaClient` zahtijeva adapter. `@prisma/adapter-neon` za `*.neon.tech`, `@prisma/adapter-pg` za lokalni Postgres. Client output: `generated/prisma`.
+Prisma 7.9: `url` nije u `schema.prisma`; CLI koristi `prisma.config.ts` + `DIRECT_URL`. Runtime `PrismaClient` zahtijeva adapter. Client output: `generated/prisma`.
+
+## 2026-08-17 — Runtime adapter je PrismaPg, ne PrismaNeon
+
+`@prisma/adapter-neon` (WebSocket/HTTP) u `next dev` je bacao `The destination stream closed early` i Gzip `MaxListenersExceededWarning`. Prisma na tu grešku doda samo enumerable `clientVersion`, pa Next overlay pokaže `{clientVersion: "7.9.1"}`. App nije Edge runtime, pa `@prisma/adapter-pg` + Neon pooled URL (TCP) je ispravan put i lokalno i na Vercel Node funkcijama.
 
 ## 2026-08-17 — SportDC polja: sportdcLeagueId / sportdcTeamId / sportdcMatchId
 

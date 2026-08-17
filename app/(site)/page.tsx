@@ -5,9 +5,8 @@ import { StandingsTable } from "@/components/league/StandingsTable";
 import { PlayerCard } from "@/components/players/PlayerCard";
 import { Container, EmptyState, SectionHeading } from "@/components/ui/Section";
 import { getOurTeam } from "@/lib/context";
-import { getStandings } from "@/lib/league";
 import { getRecentMatches, getUpcomingMatches } from "@/lib/matches";
-import { getPlayers } from "@/lib/players";
+import { getCachedPlayers, getCachedStandings } from "@/lib/site-data";
 import { getTopAppearances, getTopAssists, getTopScorers } from "@/lib/stats";
 
 export const revalidate = 120;
@@ -20,8 +19,8 @@ export default async function HomePage() {
     getTopScorers({ limit: 5 }),
     getTopAssists({ limit: 5 }),
     getTopAppearances({ limit: 5 }),
-    getPlayers(),
-    getStandings(),
+    getCachedPlayers(),
+    getCachedStandings(),
   ]);
 
   const nextMatch = upcoming[0];

@@ -8,6 +8,7 @@ export function PlayerOfTheRound({ player }: { player: FantasyGameweekRow }) {
   return (
     <Link
       href={`/igraci/${player.player.slug}`}
+      prefetch={false}
       className="flex gap-5 overflow-hidden rounded-2xl border border-gold/40 bg-navy p-5 text-white shadow-sm transition hover:border-gold"
     >
       <div className="h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-navy-dark sm:h-36 sm:w-28">

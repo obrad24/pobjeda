@@ -39,6 +39,7 @@ export function StatsTable({ rows, sort }: { rows: PlayerSeasonStats[]; sort: St
               >
                 <Link
                   href={`/statistika?sort=${column.id}`}
+                  prefetch={false}
                   className={sort === column.id ? "text-gold" : "text-white hover:text-gold-light"}
                 >
                   {column.label}
@@ -51,7 +52,7 @@ export function StatsTable({ rows, sort }: { rows: PlayerSeasonStats[]; sort: St
           {rows.map((row) => (
             <tr key={row.playerId} className="border-t border-navy/10">
               <td className="sticky-col bg-white px-3 py-2.5">
-                <Link href={`/igraci/${row.player.slug}`} className="font-medium text-navy hover:text-gold-dark">
+                <Link href={`/igraci/${row.player.slug}`} prefetch={false} className="font-medium text-navy hover:text-gold-dark">
                   {playerFullName(row.player)}
                 </Link>
               </td>

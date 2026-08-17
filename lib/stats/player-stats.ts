@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Player } from "../../generated/prisma";
 import { resolveSeason } from "../context";
 import { prisma } from "../db/prisma";
@@ -54,12 +55,16 @@ function toRows(
   });
 }
 
+const getSeasonStatsById = cache(async function getSeasonStatsById(seasonId: string): Promise<PlayerSeasonStats[]> {
+  const { appearances, goals, cards } = await loadSeasonAppearances(seasonId);
+  const totals = aggregateSeasonStats(appearances, goals, cards);
+  return toRows(appearances, totals);
+});
+
 export async function getSeasonPlayerStatistics(options?: StatsQuery): Promise<PlayerSeasonStats[]> {
   const query = parseOrThrow(statsQuerySchema, options ?? {});
   const season = await resolveSeason(query.seasonId);
-  const { appearances, goals, cards } = await loadSeasonAppearances(season.id);
-  const totals = aggregateSeasonStats(appearances, goals, cards);
-  return toRows(appearances, totals);
+  return getSeasonStatsById(season.id);
 }
 
 export async function getPlayerStatistics(
@@ -71,12 +76,19 @@ export async function getPlayerStatistics(
   const season = await resolveSeason(query.seasonId);
   const player = await getPlayer(id);
 
-  const { appearances, goals, cards } = await loadSeasonAppearances(season.id);
-  const totals = aggregateSeasonStats(
-    appearances.filter((row) => row.playerId === id),
-    goals,
-    cards,
-  );
+  const appearances = await prisma.matchPlayer.findMany({
+    where: { playerId: id, match: { seasonId: season.id } },
+    include: { player: true },
+  });
+  const matchIds = [...new Set(appearances.map((row) => row.matchId))];
+  const [goals, cards] = matchIds.length
+    ? await Promise.all([
+        prisma.matchGoal.findMany({ where: { matchId: { in: matchIds } } }),
+        prisma.matchCard.findMany({ where: { matchId: { in: matchIds } } }),
+      ])
+    : [[], []];
+
+  const totals = aggregateSeasonStats(appearances, goals, cards);
   const row = totals.get(id);
 
   return {

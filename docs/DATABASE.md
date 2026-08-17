@@ -1,6 +1,6 @@
 # Baza — Neon PostgreSQL + Prisma
 
-Neon je produkcijska baza. Prisma 7 je ORM. Runtime koristi driver adapter: **Neon** kada `DATABASE_URL` sadrži `neon.tech`, inače **pg** (lokalni PostgreSQL).
+Neon je produkcijska baza. Prisma 7 je ORM. Runtime koristi `@prisma/adapter-pg` (`pg` TCP) i za Neon i za lokalni PostgreSQL. Next.js ovdje nije Edge runtime — Neon serverless/WebSocket adapter (`@prisma/adapter-neon`) zatvara HTTP streamove i Next overlay tada pokaže samo `{clientVersion: "7.9.1"}`.
 
 Aggregate statistike igrača se **ne čuvaju** kao denormalizovana polja; računaju se iz `MatchPlayer`, `MatchGoal` i `MatchCard`. Fantasy bodovi se čuvaju u `FantasyMatchPoints` jer se računaju iz više evenata i trebaju breakdown + brzi leaderboard; i dalje se mogu u potpunosti preračunati iz statistike.
 
@@ -31,9 +31,11 @@ datasource: {
 ```typescript
 // lib/db/prisma.ts
 new PrismaClient({
-  adapter: connectionString.includes("neon.tech")
-    ? new PrismaNeon({ connectionString })
-    : new PrismaPg({ connectionString }),
+  adapter: new PrismaPg({
+    connectionString,
+    max: process.env.VERCEL ? 1 : 10,
+    connectionTimeoutMillis: 15_000,
+  }),
 })
 ```
 

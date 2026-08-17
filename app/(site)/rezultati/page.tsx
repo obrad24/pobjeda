@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FixturesList, RoundFilter } from "@/components/league/FixturesList";
 import { Container, PageHeader, SectionHeading } from "@/components/ui/Section";
 import { getOurTeam } from "@/lib/context";
-import { getSchedule } from "@/lib/league";
+import { getCachedSchedule } from "@/lib/site-data";
 
 export const metadata: Metadata = {
   title: "Rezultati i raspored",
@@ -25,7 +25,7 @@ export default async function ResultsPage({
 }) {
   const params = await searchParams;
   const selected = parseRound(params.kolo);
-  const [schedule, ourTeam] = await Promise.all([getSchedule(), getOurTeam()]);
+  const [schedule, ourTeam] = await Promise.all([getCachedSchedule(), getOurTeam()]);
   const rounds = schedule.rounds.map((round) => round.round).filter((round) => round > 0);
   const matches = selected
     ? (schedule.rounds.find((round) => round.round === selected)?.matches ?? [])

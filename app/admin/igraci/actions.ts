@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { CACHE_TAGS, revalidatePublic } from "@/lib/query-cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { withError, withToast } from "@/lib/admin/paths";
@@ -46,6 +47,7 @@ function revalidatePlayers(slug?: string) {
   revalidatePath("/igraci");
   revalidatePath("/statistika");
   revalidatePath("/admin/igraci");
+  revalidatePublic(CACHE_TAGS.players, CACHE_TAGS.stats);
   if (slug) {
     revalidatePath(`/igraci/${slug}`);
   }

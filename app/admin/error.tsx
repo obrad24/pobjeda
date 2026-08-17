@@ -1,5 +1,7 @@
 "use client";
 
+import { publicErrorMessage } from "@/lib/errors";
+
 export default function AdminError({
   error,
   reset,
@@ -10,7 +12,7 @@ export default function AdminError({
   return (
     <div className="max-w-lg rounded-xl border border-red/20 bg-white p-6">
       <h1 className="font-display text-2xl text-navy">Greška u admin panelu</h1>
-      <p className="mt-2 text-sm text-muted">{error.message || "Nešto nije u redu. Pokušajte ponovo."}</p>
+      <p className="mt-2 text-sm text-muted">{publicErrorMessage(error)}</p>
       <button
         type="button"
         onClick={reset}

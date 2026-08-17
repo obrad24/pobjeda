@@ -33,6 +33,7 @@ export function FantasyLeaderboard({
           <Link
             key={row.playerId}
             href={`/igraci/${row.player.slug}`}
+            prefetch={false}
             className={`block rounded-xl border p-4 ${
               row.rank === 1 ? "border-gold bg-gold/10" : "border-navy/10 bg-white"
             }`}
@@ -75,6 +76,7 @@ export function FantasyLeaderboard({
                 <th key={column.id} className="px-3 py-3 text-center font-medium">
                   <Link
                     href={hrefFor(column.id, query)}
+                    prefetch={false}
                     className={sort === column.id ? "text-gold" : "text-white hover:text-gold-light"}
                   >
                     {column.label}
@@ -92,7 +94,7 @@ export function FantasyLeaderboard({
               >
                 <td className="px-3 py-3 font-display tabular-nums text-gold">{row.rank}</td>
                 <td className="px-3 py-3">
-                  <Link href={`/igraci/${row.player.slug}`} className="font-medium text-navy hover:text-gold-dark">
+                  <Link href={`/igraci/${row.player.slug}`} prefetch={false} className="font-medium text-navy hover:text-gold-dark">
                     {playerFullName(row.player)}
                   </Link>
                 </td>

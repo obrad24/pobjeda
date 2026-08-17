@@ -16,7 +16,7 @@ export function Footer() {
 
         <nav aria-label="Podnožje" className="grid grid-cols-2 gap-2 text-sm">
           {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="text-white/80 hover:text-gold">
+            <Link key={link.href} href={link.href} prefetch={false} className="text-white/80 hover:text-gold">
               {link.label}
             </Link>
           ))}

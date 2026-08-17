@@ -24,6 +24,7 @@ export function FixturesList({
           <li key={match.id}>
             <Link
               href={`/utakmice/${match.id}`}
+              prefetch={false}
               className={`grid gap-3 px-4 py-3 transition hover:bg-cream sm:grid-cols-[7.5rem_1fr_auto] sm:items-center ${
                 ours ? "bg-gold/10" : ""
               }`}
@@ -81,6 +82,7 @@ function FilterChip({ href, active, label }: { href: string; active: boolean; la
   return (
     <Link
       href={href}
+      prefetch={false}
       className={`shrink-0 rounded-full border px-3 py-1.5 text-sm ${
         active
           ? "border-gold bg-navy text-gold"

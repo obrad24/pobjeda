@@ -39,6 +39,7 @@ export function PlayerCard({ player }: { player: Player }) {
   return (
     <Link
       href={`/igraci/${player.slug}`}
+      prefetch={false}
       className="group overflow-hidden rounded-xl border border-navy/15 bg-white shadow-sm transition hover:border-gold hover:shadow-md"
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-navy">

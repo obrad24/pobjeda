@@ -41,6 +41,7 @@ export function RecentResults({
           <Link
             key={match.id}
             href={`/utakmice/${match.id}`}
+            prefetch={false}
             className="rounded-xl border border-navy/10 bg-white p-4 shadow-sm transition hover:border-gold"
           >
             <div className="flex items-center justify-between gap-2 text-xs text-muted">

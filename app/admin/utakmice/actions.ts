@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { CACHE_TAGS, revalidatePublic } from "@/lib/query-cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { ValidationError } from "@/lib/errors";
 import { saveMatchStatistics } from "@/lib/matches";
@@ -15,6 +16,7 @@ export async function saveMatchStatisticsAction(matchId: string, payload: MatchS
     revalidatePath("/fantasy");
     revalidatePath("/igraci");
     revalidatePath(`/utakmice/${match.id}`);
+    revalidatePublic(CACHE_TAGS.stats, CACHE_TAGS.fantasy);
     for (const row of match.lineups) {
       revalidatePath(`/igraci/${row.player.slug}`);
     }

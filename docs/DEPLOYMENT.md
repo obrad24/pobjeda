@@ -60,7 +60,7 @@ Prvi admin nalog: lokalno `npm run db:seed` protiv Neon-a (upsert User). U produ
 4. Build command: `prisma generate && next build` (već u `package.json` `build`).
 5. Install: `npm ci` ili `npm install`.
 6. Output: default Next.js.
-7. Serverless: App Router, Route Handlers (`/api/cron/sportdc-sync` `maxDuration = 60`, `/api/auth/[...nextauth]`), Server Actions. Prisma ide kroz `serverExternalPackages`.
+7. Serverless: App Router, Route Handlers (`/api/cron/sportdc-sync` `maxDuration = 60`, `/api/auth/[...nextauth]`), Server Actions. Prisma ide kroz `serverExternalPackages` i `@prisma/adapter-pg` (TCP na Neon pooled URL).
 
 ## 5. Git repository
 

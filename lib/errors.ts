@@ -26,3 +26,11 @@ export class NotFoundError extends AppError {
     this.name = "NotFoundError";
   }
 }
+
+export function publicErrorMessage(error: Error): string {
+  const message = error.message?.trim() ?? "";
+  if (!message || message.startsWith("{clientVersion") || message === "[object Object]") {
+    return "Veza sa bazom nije uspjela. Sačekajte par sekundi i pokušajte ponovo.";
+  }
+  return message;
+}

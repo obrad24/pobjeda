@@ -1,5 +1,5 @@
 import { PageLoader } from "@/components/ui/PageLoader";
 
-export default function AdminLoading() {
+export default function LoginLoading() {
   return <PageLoader />;
 }

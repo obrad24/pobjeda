@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { MatchStatus } from "../../generated/prisma";
 import { resolveLeague } from "../context";
 import { prisma } from "../db/prisma";
@@ -85,16 +86,12 @@ async function computeFromMatches(leagueId: string): Promise<{
   };
 }
 
-/**
- * Javna tabela: SportDC `LeagueStanding` je source of truth.
- * Ako keš ne postoji, računa se iz FINISHED ligaških utakmica.
- */
-export async function getStandings(options?: StandingsQuery): Promise<StandingsTable> {
-  const query = parseOrThrow(standingsQuerySchema, options ?? {});
-  const league = await resolveLeague(query);
-
+const loadStandingsForLeague = cache(async function loadStandingsForLeague(
+  leagueId: string,
+  seasonId: string,
+): Promise<StandingsTable> {
   const cached = await prisma.leagueStanding.findMany({
-    where: { leagueId: league.id },
+    where: { leagueId },
     orderBy: { position: "asc" },
   });
 
@@ -136,21 +133,31 @@ export async function getStandings(options?: StandingsQuery): Promise<StandingsT
 
     return {
       source: "SPORTDC",
-      leagueId: league.id,
-      seasonId: league.seasonId,
+      leagueId,
+      seasonId,
       updatedAt,
       rows,
     };
   }
 
-  const computed = await computeFromMatches(league.id);
+  const computed = await computeFromMatches(leagueId);
   return {
     source: computed.rows.some((row) => row.played > 0) ? "COMPUTED" : "EMPTY",
-    leagueId: league.id,
-    seasonId: league.seasonId,
+    leagueId,
+    seasonId,
     updatedAt: computed.updatedAt,
     rows: computed.rows,
   };
+});
+
+/**
+ * Javna tabela: SportDC `LeagueStanding` je source of truth.
+ * Ako keš ne postoji, računa se iz FINISHED ligaških utakmica.
+ */
+export async function getStandings(options?: StandingsQuery): Promise<StandingsTable> {
+  const query = parseOrThrow(standingsQuerySchema, options ?? {});
+  const league = await resolveLeague(query);
+  return loadStandingsForLeague(league.id, league.seasonId);
 }
 
 export async function getComputedStandings(options?: StandingsQuery): Promise<StandingsTable> {
