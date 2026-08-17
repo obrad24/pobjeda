@@ -14,6 +14,14 @@ export const authConfig = {
     strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60,
   },
+  logger: {
+    error(error) {
+      if (error.name === "JWTSessionError" || error.name === "SessionTokenError") {
+        return;
+      }
+      console.error(error);
+    },
+  },
   callbacks: {
     authorized({ auth, request }) {
       if (!request.nextUrl.pathname.startsWith("/admin")) {

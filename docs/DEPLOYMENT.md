@@ -123,7 +123,7 @@ Bez headera očekuj `401`.
 
 - [ ] `/` učitava, Pobjeda, sljedeća utakmica
 - [ ] `/liga` tabela, gold red 8448
-- [ ] `/igraci/luka-popovic` (ili aktuelni slug)
+- [ ] `/igraci` (prazan sastav dok se ne unesu igrači)
 - [ ] `/admin` → `/login`
 - [ ] Prijava sa produkcijskim admin nalogom
 - [ ] Cron 401 bez secret-a

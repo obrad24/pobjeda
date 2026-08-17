@@ -162,4 +162,4 @@ npm run backend:smoke
 ```
 
 Unit: Zod, `computeStandings`, agregacija statistike.
-Smoke (Neon): igrači, utakmice, statistika, tabela, raspored, rezultati, sync status.
+Smoke (Neon): utakmice, tabela, raspored, rezultati, sync status, CRUD igrača na privremenom fixture-u.

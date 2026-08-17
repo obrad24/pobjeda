@@ -1,27 +1,31 @@
 import { PrismaPg } from "@prisma/adapter-pg";
+import { setDefaultResultOrder } from "node:dns";
 import { PrismaClient } from "../../generated/prisma";
+import { runtimeConnectionString, withDbRetry } from "./connection";
+
+setDefaultResultOrder("ipv4first");
 
 function createAdapter(connectionString: string) {
   const serverless = Boolean(process.env.VERCEL);
-  return new PrismaPg({
-    connectionString: connectionString.replaceAll("sslmode=require", "sslmode=verify-full"),
-    max: serverless ? 4 : 10,
-    idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 15_000,
-  });
-}
-
-function toPlainError(error: unknown): Error {
-  if (error instanceof Error) {
-    const code = "code" in error && typeof error.code === "string" ? error.code : undefined;
-    const message = [code, error.message].filter(Boolean).join(": ") || "Database error";
-    const wrapped = new Error(message);
-    wrapped.name = error.name || "PrismaError";
-    wrapped.cause = error;
-    return wrapped;
-  }
-
-  return new Error(String(error));
+  return new PrismaPg(
+    {
+      connectionString: runtimeConnectionString(connectionString),
+      max: serverless ? 1 : 3,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: serverless ? 8_000 : 30_000,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10_000,
+      allowExitOnIdle: true,
+    },
+    {
+      onPoolError: (error) => {
+        console.error("pg pool error:", error.message);
+      },
+      onConnectionError: (error) => {
+        console.error("pg connection error:", error.message);
+      },
+    },
+  );
 }
 
 export function createPrismaClient() {
@@ -37,12 +41,8 @@ export function createPrismaClient() {
 
   return client.$extends({
     query: {
-      async $allOperations({ args, query }) {
-        try {
-          return await query(args);
-        } catch (error) {
-          throw toPlainError(error);
-        }
+      async $allOperations({ query, args }) {
+        return withDbRetry(() => query(args), process.env.VERCEL ? 2 : 3);
       },
     },
   });

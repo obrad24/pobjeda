@@ -60,6 +60,10 @@ test("fantasy stranica se učitava", async ({ page }) => {
 test("SEO URL igrača", async ({ page }) => {
   await page.goto("/igraci");
   const profile = page.locator('a[href^="/igraci/"]').first();
+  if ((await profile.count()) === 0) {
+    await expect(page.getByText("Sastav se još unosi")).toBeVisible();
+    return;
+  }
   await expect(profile).toBeVisible();
   const href = await profile.getAttribute("href");
   expect(href).toMatch(/^\/igraci\/[a-z0-9-]+$/);

@@ -70,6 +70,38 @@ async function duplicates() {
   );
 }
 
+const QA_MATCH_ID = 899002;
+
+async function cleanupQaMatch() {
+  await prisma.match.deleteMany({ where: { sportdcMatchId: QA_MATCH_ID } });
+}
+
+async function createQaMatch() {
+  await cleanupQaMatch();
+  const opening = await prisma.match.findUnique({ where: { sportdcMatchId: 604152 } });
+  const pobjeda = await prisma.team.findUnique({ where: { sportdcTeamId: 8448 } });
+  const tavna = await prisma.team.findUnique({ where: { sportdcTeamId: 7594 } });
+  assert(opening && pobjeda && tavna, "QA fixture needs opening match and clubs");
+
+  return prisma.match.create({
+    data: {
+      seasonId: opening.seasonId,
+      leagueId: opening.leagueId,
+      homeTeamId: pobjeda.id,
+      awayTeamId: tavna.id,
+      sportdcMatchId: QA_MATCH_ID,
+      date: new Date("2026-08-10T17:00:00+02:00"),
+      time: "17:00",
+      stadium: "Triješnica",
+      round: 0,
+      status: "FINISHED",
+      homeScore: 2,
+      awayScore: 1,
+    },
+    include: { homeTeam: true, awayTeam: true, lineups: true, goals: true, cards: true },
+  });
+}
+
 async function workflow() {
   const created = await createPlayer({
     firstName: "QA",
@@ -83,8 +115,7 @@ async function workflow() {
   const recent = await getRecentMatches({ limit: 3 });
   assert(recent.length <= 3, "Recent list must be capped at 3");
 
-  const match = await getMatchBySportDcId(800002);
-  const beforeLineups = match.lineups.length;
+  const match = await createQaMatch();
   await saveMatchStatistics(match.id, {
     lineups: [
       { playerId: created.id, starter: true, minutes: 90 },
@@ -92,7 +123,7 @@ async function workflow() {
     goals: [{ playerId: created.id, assistPlayerId: null, minute: 12 }],
     cards: [{ playerId: created.id, type: "YELLOW", minute: 40 }],
   });
-  const after = await getMatchBySportDcId(800002);
+  const after = await getMatchBySportDcId(QA_MATCH_ID);
   assert(after.lineups.some((row) => row.playerId === created.id), "Lineup not saved");
   assert(after.goals.some((goal) => goal.playerId === created.id), "Goal not saved");
   assert(after.cards.some((card) => card.playerId === created.id && card.type === "YELLOW"), "Card not saved");
@@ -103,29 +134,35 @@ async function workflow() {
   const scorers = await getTopScorers({ limit: 10 });
   assert(scorers.some((row) => row.playerId === created.id), "New scorer should appear");
 
-  await prisma.matchPlayer.deleteMany({ where: { matchId: match.id, playerId: created.id } });
-  await prisma.matchGoal.deleteMany({ where: { matchId: match.id, playerId: created.id } });
-  await prisma.matchCard.deleteMany({ where: { matchId: match.id, playerId: created.id } });
-  await prisma.matchPenaltyMiss.deleteMany({ where: { matchId: match.id, playerId: created.id } });
-  await prisma.fantasyMatchPoints.deleteMany({ where: { matchId: match.id, playerId: created.id } });
+  await cleanupQaMatch();
   await deletePlayer(created.id);
-  assert(beforeLineups === (await getMatchBySportDcId(800002)).lineups.length, "Cleanup restored lineup count");
 }
 
 async function scoreChangeKeepsStats() {
-  const match = await getMatchBySportDcId(800001);
+  const created = await createPlayer({
+    firstName: "QA",
+    lastName: `Drift${Date.now()}`,
+    position: "FW",
+  });
+  const match = await createQaMatch();
+  await saveMatchStatistics(match.id, {
+    lineups: [{ playerId: created.id, starter: true, minutes: 90 }],
+    goals: [{ playerId: created.id, assistPlayerId: null, minute: 20 }],
+    cards: [],
+  });
+  const withStats = await getMatchBySportDcId(QA_MATCH_ID);
   const snapshot = {
-    homeScore: match.homeScore,
-    awayScore: match.awayScore,
-    lineups: match.lineups.length,
-    goals: match.goals.length,
-    cards: match.cards.length,
+    homeScore: withStats.homeScore,
+    awayScore: withStats.awayScore,
+    lineups: withStats.lineups.length,
+    goals: withStats.goals.length,
+    cards: withStats.cards.length,
   };
-  assert(snapshot.lineups > 0 && snapshot.goals > 0, "Seed match 800001 must have stats");
+  assert(snapshot.lineups > 0 && snapshot.goals > 0, "QA fixture must have stats");
 
   const drifted = await prisma.match.update({
-    where: { id: match.id },
-    data: { homeScore: (match.homeScore ?? 0) + 1 },
+    where: { id: withStats.id },
+    data: { homeScore: (withStats.homeScore ?? 0) + 1 },
     include: { lineups: true, goals: true, cards: true, homeTeam: true, awayTeam: true },
   });
   assert(drifted.lineups.length === snapshot.lineups, "Lineups must survive a SportDC score change");
@@ -135,30 +172,28 @@ async function scoreChangeKeepsStats() {
   const warning = ourEnteredGoalsMismatch(drifted, ourTeam.id);
   assert(warning, "Admin should be warned after a score drift");
 
-  const { warnings } = await syncMatches(match.seasonId, match.leagueId, [
+  const { warnings } = await syncMatches(withStats.seasonId, withStats.leagueId, [
     {
-      sportdcMatchId: match.sportdcMatchId,
-      round: match.round,
-      date: match.date,
-      time: match.time,
-      stadium: match.stadium,
-      homeTeamId: match.homeTeam.sportdcTeamId,
-      awayTeamId: match.awayTeam.sportdcTeamId,
-      homeName: match.homeTeam.sportdcName,
-      awayName: match.awayTeam.sportdcName,
-      status: match.status,
-      homeScore: (match.homeScore ?? 0) + 2,
-      awayScore: match.awayScore,
+      sportdcMatchId: withStats.sportdcMatchId,
+      round: withStats.round,
+      date: withStats.date,
+      time: withStats.time,
+      stadium: withStats.stadium,
+      homeTeamId: withStats.homeTeam.sportdcTeamId,
+      awayTeamId: withStats.awayTeam.sportdcTeamId,
+      homeName: withStats.homeTeam.sportdcName,
+      awayName: withStats.awayTeam.sportdcName,
+      status: withStats.status,
+      homeScore: (withStats.homeScore ?? 0) + 2,
+      awayScore: withStats.awayScore,
     },
   ]);
   assert(warnings.length >= 1, "syncMatches must warn when a scored match with stats changes");
 
-  await prisma.match.update({
-    where: { id: match.id },
-    data: { homeScore: snapshot.homeScore, awayScore: snapshot.awayScore },
-  });
-  const restored = await getMatchBySportDcId(800001);
-  assert(restored.lineups.length === snapshot.lineups, "Stats remain after restore");
+  const restored = await getMatchBySportDcId(QA_MATCH_ID);
+  assert(restored.lineups.length === snapshot.lineups, "Stats remain after score sync");
+  await cleanupQaMatch();
+  await deletePlayer(created.id);
 }
 
 async function sportdcUnavailableKeepsData() {
@@ -216,8 +251,9 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
+  .catch(async (error) => {
     console.error(error);
+    await cleanupQaMatch().catch(() => undefined);
     process.exit(1);
   })
   .finally(async () => {

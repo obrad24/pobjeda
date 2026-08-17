@@ -29,7 +29,14 @@ export class NotFoundError extends AppError {
 
 export function publicErrorMessage(error: Error): string {
   const message = error.message?.trim() ?? "";
-  if (!message || message.startsWith("{clientVersion") || message === "[object Object]") {
+  if (
+    !message ||
+    message.startsWith("{clientVersion") ||
+    message === "[object Object]" ||
+    /ETIMEDOUT|ECONNRESET|ECONNREFUSED|Connection terminated|Can't reach database|timeout exceeded/i.test(
+      message,
+    )
+  ) {
     return "Veza sa bazom nije uspjela. Sačekajte par sekundi i pokušajte ponovo.";
   }
   return message;

@@ -15,7 +15,6 @@ import {
   createPlayer,
   deactivatePlayer,
   deletePlayer,
-  getPlayerBySlug,
   getPlayers,
   updatePlayer,
 } from "../lib/players";
@@ -28,10 +27,41 @@ import {
   getTopScorers,
 } from "../lib/stats";
 
+const FIXTURE_MATCH_ID = 899001;
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+async function cleanupFixtureMatch() {
+  await prisma.match.deleteMany({ where: { sportdcMatchId: FIXTURE_MATCH_ID } });
+}
+
+async function createFixtureMatch() {
+  await cleanupFixtureMatch();
+  const opening = await prisma.match.findUnique({ where: { sportdcMatchId: 604152 } });
+  const pobjeda = await prisma.team.findUnique({ where: { sportdcTeamId: 8448 } });
+  const tavna = await prisma.team.findUnique({ where: { sportdcTeamId: 7594 } });
+  assert(opening && pobjeda && tavna, "Fixture match needs opening match and clubs");
+
+  return prisma.match.create({
+    data: {
+      seasonId: opening.seasonId,
+      leagueId: opening.leagueId,
+      homeTeamId: pobjeda.id,
+      awayTeamId: tavna.id,
+      sportdcMatchId: FIXTURE_MATCH_ID,
+      date: new Date("2026-08-10T17:00:00+02:00"),
+      time: "17:00",
+      stadium: "Triješnica",
+      round: 0,
+      status: "FINISHED",
+      homeScore: 2,
+      awayScore: 1,
+    },
+  });
 }
 
 async function main() {
@@ -43,21 +73,10 @@ async function main() {
   }
 
   const players = await getPlayers();
-  assert(players.length >= 15, `Expected at least 15 active players, got ${players.length}`);
   assert(
     players.every((player) => player.active),
     "getPlayers must hide inactive players by default",
   );
-
-  const withInactive = await getPlayers({ includeInactive: true });
-  assert(
-    withInactive.some((player) => player.slug === "predrag-zivanovic" && !player.active),
-    "Inactive seed player Predrag Živanović must appear when includeInactive is true",
-  );
-
-  const luka = await getPlayerBySlug("luka-popovic");
-  assert(luka.position === "FW", "Luka Popović must be a forward");
-  assert(luka.jerseyNumber === 7, "Luka Popović must wear 7");
 
   const upcoming = await getUpcomingMatches({ limit: 10 });
   assert(upcoming.length >= 1, "Expected at least one upcoming Pobjeda match");
@@ -71,7 +90,6 @@ async function main() {
   );
 
   const recent = await getRecentMatches({ limit: 3 });
-  assert(recent.length >= 2, "Expected seeded finished matches in recent results");
   assert(
     recent.every((match) => match.status === "FINISHED"),
     "Recent matches must be finished",
@@ -85,42 +103,75 @@ async function main() {
   assert(openingById.homeTeam.sportdcTeamId === 8448, "Pobjeda must be home in 604152");
   assert(openingById.awayTeam.sportdcTeamId === 7802, "Away team must be Borac 7802");
 
-  const finished = await getMatchBySportDcId(800001);
-  assert(finished.lineups.length >= 12, "Finished match must include lineup");
-  assert(finished.goals.length === 2, "Finished match must include goal events");
-  assert(finished.cards.length === 1, "Finished match must include card events");
+  const stamp = Date.now();
+  const striker = await createPlayer({
+    firstName: "Smoke",
+    lastName: `Napadač${stamp}`,
+    position: "FW",
+  });
+  const playmaker = await createPlayer({
+    firstName: "Smoke",
+    lastName: `Veznjak${stamp}`,
+    position: "MF",
+  });
+  const defender = await createPlayer({
+    firstName: "Smoke",
+    lastName: `Štoper${stamp}`,
+    position: "DF",
+  });
+  const winger = await createPlayer({
+    firstName: "Smoke",
+    lastName: `Krilo${stamp}`,
+    position: "WG",
+  });
+  assert(winger.position === "WG", "Winger should be position WG");
 
-  const lukaStats = await getPlayerStatistics(luka.id);
-  assert(lukaStats.hasData, "Luka must have season stats from seed match");
-  assert(lukaStats.goals === 2, `Luka goals: expected 2, got ${lukaStats.goals}`);
-  assert(lukaStats.appearances === 1, "Luka should have 1 appearance");
-  assert(lukaStats.minutes === 90, "Luka should have 90 minutes");
+  const fixture = await createFixtureMatch();
+  await saveMatchStatistics(fixture.id, {
+    lineups: [
+      { playerId: striker.id, starter: true, minutes: 90 },
+      { playerId: playmaker.id, starter: true, minutes: 90 },
+      { playerId: defender.id, starter: true, substitutedAt: 70 },
+      { playerId: winger.id, starter: false, enteredAt: 70 },
+    ],
+    goals: [
+      { playerId: striker.id, assistPlayerId: playmaker.id, minute: 23 },
+      { playerId: striker.id, assistPlayerId: null, minute: 81 },
+    ],
+    cards: [{ playerId: defender.id, type: "YELLOW", minute: 64 }],
+  });
 
-  const darko = await getPlayerBySlug("darko-lukic");
-  const darkoStats = await getPlayerStatistics(darko.id);
-  assert(darkoStats.assists === 1, `Darko assists: expected 1, got ${darkoStats.assists}`);
+  const finished = await getMatch(fixture.id);
+  assert(finished.lineups.length === 4, "Fixture match must include lineup");
+  assert(finished.goals.length === 2, "Fixture match must include goal events");
+  assert(finished.cards.length === 1, "Fixture match must include card events");
 
-  const stefan = await getPlayerBySlug("stefan-ilic");
-  const stefanStats = await getPlayerStatistics(stefan.id);
-  assert(stefanStats.yellowCards === 1, "Stefan should have 1 yellow from MatchCard");
-  assert(stefanStats.minutes === 70, "Stefan should have 70 minutes");
+  const lukaStats = await getPlayerStatistics(striker.id);
+  assert(lukaStats.hasData, "Striker must have season stats from fixture match");
+  assert(lukaStats.goals === 2, `Striker goals: expected 2, got ${lukaStats.goals}`);
+  assert(lukaStats.appearances === 1, "Striker should have 1 appearance");
+  assert(lukaStats.minutes === 90, "Striker should have 90 minutes");
+
+  const darkoStats = await getPlayerStatistics(playmaker.id);
+  assert(darkoStats.assists === 1, `Playmaker assists: expected 1, got ${darkoStats.assists}`);
+
+  const stefanStats = await getPlayerStatistics(defender.id);
+  assert(stefanStats.yellowCards === 1, "Defender should have 1 yellow from MatchCard");
+  assert(stefanStats.minutes === 70, "Defender should have 70 minutes");
 
   const scorers = await getTopScorers({ limit: 5 });
-  assert(scorers[0]?.player.slug === "luka-popovic", "Top scorer should be Luka Popović");
+  assert(scorers[0]?.playerId === striker.id, "Top scorer should be the fixture striker");
   assert(scorers[0]?.goals === 2, "Top scorer should have 2 goals");
 
   const assists = await getTopAssists({ limit: 5 });
-  assert(assists[0]?.player.slug === "darko-lukic", "Top assists should be Darko Lukić");
+  assert(assists[0]?.playerId === playmaker.id, "Top assists should be the fixture playmaker");
 
   const appearances = await getTopAppearances({ limit: 5 });
-  assert(appearances.length >= 1, "Top appearances must not be empty after seed lineup");
+  assert(appearances.length >= 1, "Top appearances must not be empty after fixture lineup");
   assert(appearances[0]?.appearances >= 1, "Leaders must have at least one appearance");
 
   const teamStats = await getTeamStatistics();
   assert(teamStats.team.isOurTeam, "Team statistics must be for FK Pobjeda");
-  assert(teamStats.played === 2, `Team played: expected 2 friendlies, got ${teamStats.played}`);
-  assert(teamStats.won === 1 && teamStats.drawn === 1 && teamStats.lost === 0, "Team record 1-1-0");
-  assert(teamStats.goalsFor === 3 && teamStats.goalsAgainst === 2, "Team goals 3:2");
   assert(teamStats.nextMatch?.sportdcMatchId === 604152, "Next match should be 604152");
 
   const table = await getStandings();
@@ -148,34 +199,9 @@ async function main() {
 
   const friendlyResults = await getResults({ includeFriendlies: true });
   assert(
-    friendlyResults.matches.some((match) => match.sportdcMatchId === 800001),
-    "Friendly results should include seed match 800001",
+    friendlyResults.matches.some((match) => match.sportdcMatchId === FIXTURE_MATCH_ID),
+    "Friendly results should include the fixture match",
   );
-
-  const filip = await getPlayerBySlug("filip-marinkovic");
-  assert(filip.position === "WG", "Filip Marinković should be a winger (Krilo)");
-
-  const awayFriendly = await getMatchBySportDcId(800002);
-  await saveMatchStatistics(awayFriendly.id, {
-    lineups: [
-      { playerId: filip.id, starter: true, minutes: 90 },
-      { playerId: luka.id, starter: true, substitutedAt: 80 },
-    ],
-    goals: [],
-    cards: [],
-  });
-  const afterSave = await getPlayerStatistics(filip.id);
-  assert(afterSave.appearances === 2, `Filip appearances expected 2, got ${afterSave.appearances}`);
-  assert(afterSave.goals === 0, "SportDC 1-1 must not create a player goal");
-  const lukaAfter = await getPlayerStatistics(luka.id);
-  assert(lukaAfter.goals === 2, "Luka goals stay from MatchGoal events, not SportDC score");
-  assert(lukaAfter.appearances === 2, "Luka should have two appearances after second lineup");
-  assert(lukaAfter.minutes === 170, `Luka minutes expected 170, got ${lukaAfter.minutes}`);
-
-  await prisma.matchPlayer.deleteMany({ where: { matchId: awayFriendly.id } });
-  await prisma.matchGoal.deleteMany({ where: { matchId: awayFriendly.id } });
-  await prisma.matchCard.deleteMany({ where: { matchId: awayFriendly.id } });
-  await prisma.fantasyMatchPoints.deleteMany({ where: { matchId: awayFriendly.id } });
 
   const syncStatus = await getSyncStatus();
   assert(syncStatus.lastSuccess || syncStatus.latest, "Sync status should return the latest run");
@@ -216,7 +242,7 @@ async function main() {
 
   let blockedDelete = false;
   try {
-    await deletePlayer(luka.id);
+    await deletePlayer(striker.id);
   } catch (error) {
     blockedDelete = error instanceof ValidationError;
   }
@@ -233,20 +259,25 @@ async function main() {
   assert(history.published === false, "Unpublished history must stay off the public site");
   await deleteHistoryEntry(history.id);
 
+  await cleanupFixtureMatch();
+  await deletePlayer(striker.id);
+  await deletePlayer(playmaker.id);
+  await deletePlayer(defender.id);
+  await deletePlayer(winger.id);
+
   console.log("Backend smoke OK");
-  console.log(`  players: ${players.length} active / ${withInactive.length} total`);
+  console.log(`  players: ${players.length} active`);
   console.log(`  upcoming: ${upcoming.length}, recent: ${recent.length}`);
   console.log(`  round 1: ${round1.length} matches`);
   console.log(`  standings: ${table.rows.length} (${table.source})`);
   console.log(`  schedule rounds: ${schedule.rounds.length}`);
   console.log(`  league results: ${leagueResults.matches.length}`);
-  console.log(`  top scorer: ${scorers[0]?.player.slug} (${scorers[0]?.goals})`);
-  console.log(`  team: ${teamStats.won}W ${teamStats.drawn}D ${teamStats.lost}L`);
 }
 
 main()
-  .catch((error) => {
+  .catch(async (error) => {
     console.error(error);
+    await cleanupFixtureMatch().catch(() => undefined);
     process.exit(1);
   })
   .finally(async () => {

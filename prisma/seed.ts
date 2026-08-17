@@ -1,14 +1,8 @@
 import "dotenv/config";
 import { hash } from "bcryptjs";
-import {
-  CardType,
-  MatchStatus,
-  Position,
-  Role,
-} from "../generated/prisma";
+import { MatchStatus, Role } from "../generated/prisma";
 import { prisma } from "../lib/db/prisma";
-import { ensureFantasyRules, recalculateMatchFantasy } from "../lib/fantasy";
-import { slugifyName } from "../lib/utils/slug";
+import { ensureFantasyRules } from "../lib/fantasy";
 
 const LEAGUE_URL =
   process.env.SPORTDC_LEAGUE_URL ??
@@ -43,33 +37,6 @@ const TEAMS: Array<{
   { sportdcTeamId: 7802, name: "FK Borac Ugljevička Obrijež", sportdcName: "Borac", city: "Ugljevička Obrijež" },
   { sportdcTeamId: 7596, name: "FK Glogovac", sportdcName: "Glogovac", city: "Glogovac" },
   { sportdcTeamId: 7580, name: "FK Jedinstvo Donja Čađavica", sportdcName: "Jedinstvo", city: "Donja Čađavica" },
-];
-
-const PLAYERS: Array<{
-  firstName: string;
-  lastName: string;
-  birthYear: number;
-  jerseyNumber: number;
-  position: Position;
-  formerClubs?: string;
-  active?: boolean;
-}> = [
-  { firstName: "Marko", lastName: "Petrović", birthYear: 1996, jerseyNumber: 1, position: Position.GK, formerClubs: "Radnik Bijeljina" },
-  { firstName: "Nemanja", lastName: "Jovanović", birthYear: 2001, jerseyNumber: 12, position: Position.GK },
-  { firstName: "Stefan", lastName: "Ilić", birthYear: 1995, jerseyNumber: 2, position: Position.DF, formerClubs: "Sloga Dazdarevo" },
-  { firstName: "Bojan", lastName: "Simić", birthYear: 1998, jerseyNumber: 3, position: Position.DF },
-  { firstName: "Aleksandar", lastName: "Nikolić", birthYear: 1994, jerseyNumber: 4, position: Position.DF, formerClubs: "Tavna Banjica" },
-  { firstName: "Miloš", lastName: "Đorđević", birthYear: 1999, jerseyNumber: 5, position: Position.DF },
-  { firstName: "Vladimir", lastName: "Stanković", birthYear: 1997, jerseyNumber: 6, position: Position.DF },
-  { firstName: "Nikola", lastName: "Pavlović", birthYear: 2000, jerseyNumber: 8, position: Position.MF },
-  { firstName: "Darko", lastName: "Lukić", birthYear: 1993, jerseyNumber: 10, position: Position.MF, formerClubs: "OFK Crnjelovo, Patkovača" },
-  { firstName: "Filip", lastName: "Marinković", birthYear: 2002, jerseyNumber: 11, position: Position.WG },
-  { firstName: "Dušan", lastName: "Kovačević", birthYear: 1998, jerseyNumber: 16, position: Position.MF },
-  { firstName: "Goran", lastName: "Mitrović", birthYear: 1996, jerseyNumber: 18, position: Position.MF },
-  { firstName: "Luka", lastName: "Popović", birthYear: 2001, jerseyNumber: 7, position: Position.FW },
-  { firstName: "Ivan", lastName: "Tomić", birthYear: 1997, jerseyNumber: 9, position: Position.FW, formerClubs: "Jedinstvo Donja Čađavica" },
-  { firstName: "Saša", lastName: "Vuković", birthYear: 1995, jerseyNumber: 14, position: Position.FW },
-  { firstName: "Predrag", lastName: "Živanović", birthYear: 1990, jerseyNumber: 21, position: Position.FW, formerClubs: "Pobjeda Triješnica", active: false },
 ];
 
 async function upsertAdmin() {
@@ -156,35 +123,6 @@ async function main() {
     throw new Error("FK Pobjeda Triješnica was not seeded");
   }
 
-  const players = [];
-  for (const player of PLAYERS) {
-    const slug = slugifyName(player.firstName, player.lastName);
-    players.push(
-      await prisma.player.upsert({
-        where: { slug },
-        update: {
-          firstName: player.firstName,
-          lastName: player.lastName,
-          birthYear: player.birthYear,
-          jerseyNumber: player.jerseyNumber,
-          position: player.position,
-          formerClubs: player.formerClubs,
-          active: player.active ?? true,
-        },
-        create: {
-          firstName: player.firstName,
-          lastName: player.lastName,
-          birthYear: player.birthYear,
-          jerseyNumber: player.jerseyNumber,
-          position: player.position,
-          formerClubs: player.formerClubs,
-          slug,
-          active: player.active ?? true,
-        },
-      }),
-    );
-  }
-
   const kickoff = new Date("2026-08-23T17:30:00+02:00");
 
   const roundOne = [
@@ -233,137 +171,6 @@ async function main() {
       },
     });
   }
-
-  const friendlyDate = new Date("2026-08-10T17:00:00+02:00");
-  const tavna = bySportDcId.get(7594);
-  const nacional = bySportDcId.get(7610);
-  if (!tavna || !nacional) {
-    throw new Error("Opponent clubs missing for finished seed matches");
-  }
-
-  const finishedHome = await prisma.match.upsert({
-    where: { sportdcMatchId: 800001 },
-    update: {
-      homeScore: 2,
-      awayScore: 1,
-      status: MatchStatus.FINISHED,
-    },
-    create: {
-      seasonId: season.id,
-      leagueId: league.id,
-      homeTeamId: pobjeda.id,
-      awayTeamId: tavna.id,
-      sportdcMatchId: 800001,
-      date: friendlyDate,
-      time: "17:00",
-      stadium: "Triješnica",
-      round: 0,
-      status: MatchStatus.FINISHED,
-      homeScore: 2,
-      awayScore: 1,
-    },
-  });
-
-  await prisma.match.upsert({
-    where: { sportdcMatchId: 800002 },
-    update: {
-      homeScore: 1,
-      awayScore: 1,
-      status: MatchStatus.FINISHED,
-    },
-    create: {
-      seasonId: season.id,
-      leagueId: league.id,
-      homeTeamId: nacional.id,
-      awayTeamId: pobjeda.id,
-      sportdcMatchId: 800002,
-      date: new Date("2026-08-16T17:00:00+02:00"),
-      time: "17:00",
-      stadium: "Bijeljina",
-      round: 0,
-      status: MatchStatus.FINISHED,
-      homeScore: 1,
-      awayScore: 1,
-    },
-  });
-
-  const striker = players.find((player) => player.slug === "luka-popovic");
-  const playmaker = players.find((player) => player.slug === "darko-lukic");
-  const defender = players.find((player) => player.slug === "stefan-ilic");
-  const activePlayers = players.filter((player) => player.active);
-
-  if (!striker || !playmaker || !defender) {
-    throw new Error("Expected seed players were not created");
-  }
-
-  const starters = [striker, playmaker, defender];
-  for (const player of activePlayers) {
-    if (starters.length >= 11) {
-      break;
-    }
-    if (!starters.includes(player)) {
-      starters.push(player);
-    }
-  }
-  const sub = activePlayers.find((player) => !starters.includes(player));
-  if (!sub) {
-    throw new Error("Expected a substitute player for the seed lineup");
-  }
-
-  await prisma.matchPlayer.deleteMany({ where: { matchId: finishedHome.id } });
-  await prisma.matchGoal.deleteMany({ where: { matchId: finishedHome.id } });
-  await prisma.matchCard.deleteMany({ where: { matchId: finishedHome.id } });
-  await prisma.matchPenaltyMiss.deleteMany({ where: { matchId: finishedHome.id } });
-  await prisma.matchConcededGoal.deleteMany({ where: { matchId: finishedHome.id } });
-  await prisma.fantasyMatchPoints.deleteMany({ where: { matchId: finishedHome.id } });
-
-  for (const player of starters) {
-    const isStriker = player.id === striker.id;
-    const isPlaymaker = player.id === playmaker.id;
-    const isDefender = player.id === defender.id;
-
-    await prisma.matchPlayer.create({
-      data: {
-        matchId: finishedHome.id,
-        playerId: player.id,
-        starter: true,
-        minutes: isDefender ? 70 : 90,
-        substitutedAt: isDefender ? 70 : null,
-        goals: isStriker ? 2 : 0,
-        assists: isPlaymaker ? 1 : 0,
-        yellowCards: isDefender ? 1 : 0,
-        redCards: 0,
-      },
-    });
-  }
-
-  await prisma.matchPlayer.create({
-    data: {
-      matchId: finishedHome.id,
-      playerId: sub.id,
-      starter: false,
-      minutes: 20,
-      enteredAt: 70,
-    },
-  });
-
-  await prisma.matchGoal.createMany({
-    data: [
-      { matchId: finishedHome.id, playerId: striker.id, assistPlayerId: playmaker.id, minute: 23 },
-      { matchId: finishedHome.id, playerId: striker.id, assistPlayerId: null, minute: 81 },
-    ],
-  });
-
-  await prisma.matchCard.create({
-    data: {
-      matchId: finishedHome.id,
-      playerId: defender.id,
-      type: CardType.YELLOW,
-      minute: 64,
-    },
-  });
-
-  await recalculateMatchFantasy(finishedHome.id);
 
   await prisma.clubHistory.upsert({
     where: { id: "seed-history-osnivanje" },
@@ -447,7 +254,7 @@ async function main() {
   console.log(`  season: ${season.name}`);
   console.log(`  league: ${league.name} (${league.sportdcLeagueId})`);
   console.log(`  teams: ${teams.length}`);
-  console.log(`  players: ${players.length}`);
+  console.log("  players: 0 (add roster in admin)");
   console.log(`  our club: ${pobjeda.name} [${pobjeda.sportdcTeamId}]`);
   console.log(`  admin: ${adminEmail}`);
 }

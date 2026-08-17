@@ -28,7 +28,7 @@ Nepoznat slug ili ID utakmice → `not-found`. Neaktivni igrači nisu na `/igrac
 4. **Sastav** — kartice aktivnih igrača.
 5. **Tabela lige** — puna tabela, gold highlight našeg reda.
 
-Prazna stanja: sezona još nije krenula — raspored i tabela sa SportDC keša, bez lažnih rezultata lige. Seed prijateljske (kolo 0) mogu biti u „posljednja 3“.
+Prazna stanja: sezona još nije krenula — raspored i tabela sa SportDC keša, bez lažnih rezultata lige.
 
 ## Header / Footer
 

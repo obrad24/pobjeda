@@ -40,7 +40,7 @@ Testovi:
 - Fantasy scoring engine (`lib/fantasy/calculator.test.ts`)
 - Zod: prazno ime, loš URL slike, prazan update, autogol bez asistencije
 
-`npm run backend:smoke` (Neon): dohvat igrača i utakmica, top strijelci, tabela SportDC, raspored 1. kola, rezultati, create/update/deactivate/delete igrača (delete blokiran ako ima statistiku), CRUD istorije.
+`npm run backend:smoke` (Neon): dohvat utakmica i tabele SportDC, raspored 1. kola, rezultati, create/update/deactivate/delete igrača (privremeni fixture, delete blokiran ako ima statistiku), CRUD istorije.
 
 ## Tabela
 

@@ -32,12 +32,15 @@ datasource: {
 // lib/db/prisma.ts
 new PrismaClient({
   adapter: new PrismaPg({
-    connectionString,
-    max: process.env.VERCEL ? 1 : 10,
-    connectionTimeoutMillis: 15_000,
+    connectionString: runtimeConnectionString(process.env.DATABASE_URL),
+    max: process.env.VERCEL ? 1 : 3,
+    connectionTimeoutMillis: 30_000,
+    keepAlive: true,
   }),
 })
 ```
+
+`runtimeConnectionString` skida `channel_binding=require` (može da zaglavi TLS sa `pg`) i ostavlja `sslmode=require`. Node preferira IPv4 (`dns.setDefaultResultOrder("ipv4first")`) jer IPv6 ka Neon-u često padne na `ETIMEDOUT`. Privremeni timeout se ponavlja do 3 puta.
 
 Klijent se generiše u `generated/prisma` (`postinstall` / `npm run db:generate`). Folder nije u gitu.
 
@@ -228,10 +231,10 @@ Seed upisuje:
 - sezonu `2026-2027` (aktivna)
 - ligu `sportdcLeagueId: 6452`
 - 14 klubova lige, uključujući FK Pobjeda Triješnica (`sportdcTeamId: 8448`, `isOurTeam: true`)
-- 16 igrača (15 aktivnih + 1 neaktivan)
 - 7 utakmica 1. kola (prave SportDC ID-jeve, uključujući `604152` Pobjeda–Borac 7802)
-- 2 završene test utakmice (`800001`, `800002`) sa sastavom, golovima i kartonom
 - admin korisnika iz `ADMIN_EMAIL` / `ADMIN_PASSWORD` (dev default u `.env.example`)
+
+Igrače **ne** seeduje — sastav se unosi ručno u `/admin/igraci`. SportDC sync dopunjava ostala kola i rezultate.
 
 Lozinka se ne commituje. Produkcija mora imati druge vrijednosti.
 

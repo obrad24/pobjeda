@@ -49,11 +49,18 @@ export default async function HomePage() {
 
         <section>
           <SectionHeading title="Sastav" href="/igraci" actionLabel="Svi igrači" />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {players.map((player) => (
-              <PlayerCard key={player.id} player={player} />
-            ))}
-          </div>
+          {players.length === 0 ? (
+            <EmptyState
+              title="Sastav se još unosi"
+              body="Kartice igrača će stajati ovdje nakon što ih klub doda u adminu."
+            />
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {players.map((player) => (
+                <PlayerCard key={player.id} player={player} />
+              ))}
+            </div>
+          )}
         </section>
 
         <section>

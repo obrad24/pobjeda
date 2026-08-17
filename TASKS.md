@@ -42,7 +42,7 @@ Prije svake faze: pročitati ovaj fajl, relevantne `docs/`, naći sljedeće `[ ]
 - [x] Unique: Team.sportdcTeamId, Match.sportdcMatchId, Player.slug, MatchPlayer (matchId, playerId)
 - [x] `lib/db/prisma.ts` singleton
 - [x] Migracija (`prisma/migrations/20260817104414_init`)
-- [x] Seed: sezona 2026-2027, liga 6452, tim 8448 `isOurTeam`, 16 igrača, utakmice
+- [x] Seed: sezona 2026-2027, liga 6452, tim 8448 `isOurTeam`, utakmice 1. kola (igrače unosi admin)
 - [x] Ažurirati `.env.example` ako schema zatraži nove ključeve
 - [x] Ažurirati `docs/DATABASE.md` ako schema odstupi
 - [x] CRUD smoke test (`npm run db:smoke`)
