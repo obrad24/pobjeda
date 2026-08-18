@@ -30,6 +30,10 @@ async function imageFromForm(formData: FormData): Promise<string | null> {
 }
 
 function playerFromForm(formData: FormData, image: string | null): CreatePlayerInput {
+  const clubs = formData
+    .getAll("formerClub")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
   return {
     firstName: String(formData.get("firstName") ?? ""),
     lastName: String(formData.get("lastName") ?? ""),
@@ -37,7 +41,7 @@ function playerFromForm(formData: FormData, image: string | null): CreatePlayerI
     birthYear: optionalInt(formData.get("birthYear")),
     jerseyNumber: optionalInt(formData.get("jerseyNumber")),
     image,
-    formerClubs: optionalText(formData.get("formerClubs")),
+    formerClubs: clubs.length > 0 ? clubs.join(", ") : null,
     active: formData.get("active") === "on",
   };
 }

@@ -57,12 +57,14 @@ model Player {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  appearances     MatchPlayer[]
-  goals           MatchGoal[]          @relation("GoalsScored")
-  assists         MatchGoal[]          @relation("Assists")
-  cards           MatchCard[]
-  penaltyMisses   MatchPenaltyMiss[]
-  fantasyPoints   FantasyMatchPoints[]
+  appearances       MatchPlayer[]
+  goals             MatchGoal[]          @relation("GoalsScored")
+  assists           MatchGoal[]          @relation("Assists")
+  cards             MatchCard[]
+  penaltyMisses     MatchPenaltyMiss[]
+  substitutionsOff  MatchSubstitution[]  @relation("SubstitutedOff")
+  substitutionsOn   MatchSubstitution[]  @relation("SubstitutedOn")
+  fantasyPoints     FantasyMatchPoints[]
 
   @@index([active])
   @@index([lastName, firstName])
@@ -185,6 +187,7 @@ model Match {
   cards           MatchCard[]
   penaltyMisses   MatchPenaltyMiss[]
   concededGoals   MatchConcededGoal[]
+  substitutions   MatchSubstitution[]
   fantasyPoints   FantasyMatchPoints[]
 
   @@index([seasonId, round])
@@ -223,11 +226,27 @@ model MatchGoal {
   player         Player  @relation("GoalsScored", fields: [playerId], references: [id], onDelete: Restrict)
   assistPlayerId String?
   assistPlayer   Player? @relation("Assists", fields: [assistPlayerId], references: [id], onDelete: Restrict)
-  minute         Int
+  minute         Int?
   ownGoal        Boolean @default(false)
 
   @@index([matchId])
   @@index([playerId])
+}
+
+model MatchSubstitution {
+  id          String  @id @default(cuid())
+  matchId     String
+  match       Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  playerOutId String
+  playerOut   Player  @relation("SubstitutedOff", fields: [playerOutId], references: [id], onDelete: Restrict)
+  playerInId  String
+  playerIn    Player  @relation("SubstitutedOn", fields: [playerInId], references: [id], onDelete: Restrict)
+  minute      Int?
+  sortOrder   Int     @default(0)
+
+  @@index([matchId])
+  @@index([playerOutId])
+  @@index([playerInId])
 }
 
 model MatchPenaltyMiss {

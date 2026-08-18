@@ -12,11 +12,14 @@ export async function saveMatchStatisticsAction(matchId: string, payload: MatchS
   try {
     const match = await saveMatchStatistics(matchId, payload);
     revalidatePath("/");
+    revalidatePath("/liga");
+    revalidatePath("/rezultati");
     revalidatePath("/statistika");
     revalidatePath("/fantasy");
     revalidatePath("/igraci");
     revalidatePath(`/utakmice/${match.id}`);
-    revalidatePublic(CACHE_TAGS.stats, CACHE_TAGS.fantasy);
+    revalidatePath(`/admin/utakmice/${match.id}`);
+    revalidatePublic(CACHE_TAGS.stats, CACHE_TAGS.fantasy, CACHE_TAGS.league);
     for (const row of match.lineups) {
       revalidatePath(`/igraci/${row.player.slug}`);
     }

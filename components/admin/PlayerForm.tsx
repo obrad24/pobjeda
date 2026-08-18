@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { POSITIONS } from "@/lib/format";
+import { parseFormerClubs } from "@/lib/players/former-clubs";
 import { PendingButton } from "./PendingButton";
 
 export function PlayerForm({
@@ -26,6 +27,8 @@ export function PlayerForm({
   };
 }) {
   const [preview, setPreview] = useState<string | null>(defaults?.image ?? null);
+  const initialClubs = parseFormerClubs(defaults?.formerClubs);
+  const [clubs, setClubs] = useState<string[]>(initialClubs.length > 0 ? initialClubs : [""]);
 
   return (
     <form action={action} className="max-w-xl space-y-4 rounded-xl border border-navy/10 bg-white p-6">
@@ -127,14 +130,38 @@ export function PlayerForm({
         ) : (
           <p className="text-sm text-muted sm:col-span-2">Nema fotografije — na javnom sajtu ostaje placeholder s brojem.</p>
         )}
-        <label className="text-sm sm:col-span-2">
-          Bivši klubovi
-          <input
-            name="formerClubs"
-            defaultValue={defaults?.formerClubs ?? ""}
-            className="mt-1 w-full rounded-md border border-navy/20 px-3 py-2"
-          />
-        </label>
+        <div className="space-y-2 text-sm sm:col-span-2">
+          <p>Bivši klubovi</p>
+          {clubs.map((club, index) => (
+            <div key={index} className="flex gap-2">
+              <input
+                name="formerClub"
+                value={club}
+                placeholder="Naziv kluba"
+                className="w-full rounded-md border border-navy/20 px-3 py-2"
+                onChange={(event) => {
+                  const next = [...clubs];
+                  next[index] = event.target.value;
+                  setClubs(next);
+                }}
+              />
+              <button
+                type="button"
+                className="shrink-0 text-sm text-red"
+                onClick={() => setClubs(clubs.length > 1 ? clubs.filter((_, i) => i !== index) : [""])}
+              >
+                Ukloni
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="text-sm text-navy hover:text-gold-dark"
+            onClick={() => setClubs([...clubs, ""])}
+          >
+            Dodaj klub
+          </button>
+        </div>
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="active" defaultChecked={defaults?.active ?? true} />

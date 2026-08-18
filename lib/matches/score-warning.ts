@@ -20,10 +20,10 @@ export function ourEnteredGoalsMismatch(
   const ourScore = match.homeTeamId === ourTeamId ? match.homeScore : match.awayScore;
   const entered = match.goals.filter((goal) => !goal.ownGoal).length;
   if (entered === 0) {
-    return `SportDC rezultat za nas je ${ourScore}. Individualna statistika golova još nije unesena — provjerite sastav ako treba.`;
+    return `Rezultat za nas je ${ourScore}. Individualna statistika golova još nije unesena — provjerite sastav ako treba.`;
   }
   if (entered !== ourScore) {
-    return `SportDC rezultat za nas je ${ourScore}, a uneseno je ${entered} golova. Provjerite individualnu statistiku.`;
+    return `Rezultat za nas je ${ourScore}, a uneseno je ${entered} golova. Provjerite individualnu statistiku.`;
   }
   return null;
 }

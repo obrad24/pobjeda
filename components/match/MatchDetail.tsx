@@ -2,6 +2,10 @@ import type { MatchDetail } from "@/lib/matches";
 import { cardLabel, formatMatchDate, formatMatchTime, playerFullName, roundLabel, scoreLabel } from "@/lib/format";
 import { TeamCrest } from "@/components/ui/TeamCrest";
 
+function minuteLabel(minute: number | null | undefined) {
+  return minute != null ? `${minute}'` : "";
+}
+
 export function MatchHero({ match }: { match: MatchDetail }) {
   const played = match.status === "FINISHED" && match.homeScore != null && match.awayScore != null;
 
@@ -34,7 +38,7 @@ export function MatchHero({ match }: { match: MatchDetail }) {
 }
 
 export function MatchEvents({ match }: { match: MatchDetail }) {
-  if (match.goals.length === 0 && match.cards.length === 0) {
+  if (match.goals.length === 0 && match.cards.length === 0 && match.substitutions.length === 0) {
     return null;
   }
 
@@ -50,11 +54,12 @@ export function MatchEvents({ match }: { match: MatchDetail }) {
               <li key={goal.id} className="flex justify-between gap-3 py-2 text-sm">
                 <span>
                   <span className="font-medium text-navy">{playerFullName(goal.player)}</span>
+                  {goal.ownGoal ? <span className="text-muted"> · autogol</span> : null}
                   {goal.assistPlayer ? (
                     <span className="text-muted"> · as. {playerFullName(goal.assistPlayer)}</span>
                   ) : null}
                 </span>
-                <span className="tabular-nums text-gold-dark">{goal.minute}&apos;</span>
+                <span className="tabular-nums text-gold-dark">{minuteLabel(goal.minute)}</span>
               </li>
             ))}
           </ul>
@@ -72,12 +77,29 @@ export function MatchEvents({ match }: { match: MatchDetail }) {
                   <span className="font-medium text-navy">{playerFullName(card.player)}</span>
                   <span className="text-muted"> · {cardLabel(card.type)}</span>
                 </span>
-                <span className="tabular-nums text-gold-dark">{card.minute}&apos;</span>
+                <span className="tabular-nums text-gold-dark">{minuteLabel(card.minute)}</span>
               </li>
             ))}
           </ul>
         )}
       </div>
+      {match.substitutions.length > 0 ? (
+        <div className="rounded-xl border border-navy/10 bg-white p-5 md:col-span-2">
+          <h2 className="font-display text-xl text-navy">Zamjene</h2>
+          <ul className="mt-4 divide-y divide-navy/10">
+            {match.substitutions.map((sub) => (
+              <li key={sub.id} className="flex justify-between gap-3 py-2 text-sm">
+                <span>
+                  <span className="font-medium text-navy">{playerFullName(sub.playerOut)}</span>
+                  <span className="text-muted"> → </span>
+                  <span className="font-medium text-navy">{playerFullName(sub.playerIn)}</span>
+                </span>
+                <span className="tabular-nums text-gold-dark">{minuteLabel(sub.minute)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

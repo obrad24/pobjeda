@@ -9,6 +9,15 @@ import type { LineupRowInput, MatchStatisticsInput } from "@/lib/validation/matc
 
 type LineupDraft = LineupRowInput & { included: boolean };
 
+function emptyGoal(playerId: string) {
+  return {
+    playerId,
+    assistPlayerId: "",
+    minute: null as number | null,
+    ownGoal: false,
+  };
+}
+
 export function MatchStatsForm({
   match,
   players,
@@ -35,7 +44,16 @@ export function MatchStatsForm({
     });
   }, [match.lineups, players]);
 
+  const [homeScore, setHomeScore] = useState(match.homeScore != null ? String(match.homeScore) : "");
+  const [awayScore, setAwayScore] = useState(match.awayScore != null ? String(match.awayScore) : "");
   const [lineup, setLineup] = useState<LineupDraft[]>(initialLineup);
+  const [substitutions, setSubstitutions] = useState(
+    match.substitutions.map((sub) => ({
+      playerOutId: sub.playerOutId,
+      playerInId: sub.playerInId,
+      minute: sub.minute,
+    })),
+  );
   const [goals, setGoals] = useState(
     match.goals.map((goal) => ({
       playerId: goal.playerId,
@@ -62,18 +80,59 @@ export function MatchStatsForm({
   const [pending, startTransition] = useTransition();
 
   const selected = lineup.filter((row) => row.included);
+  const starters = selected.filter((row) => row.starter);
+  const bench = selected.filter((row) => !row.starter);
   const keepers = selected.filter((row) => players.find((player) => player.id === row.playerId)?.position === "GK");
   const goalsAgainst =
-    match.homeScore != null && match.awayScore != null
+    homeScore !== "" && awayScore !== ""
       ? match.homeTeam.isOurTeam
-        ? match.awayScore
+        ? Number(awayScore)
         : match.awayTeam.isOurTeam
-          ? match.homeScore
+          ? Number(homeScore)
           : null
-      : null;
+      : match.homeScore != null && match.awayScore != null
+        ? match.homeTeam.isOurTeam
+          ? match.awayScore
+          : match.awayTeam.isOurTeam
+            ? match.homeScore
+            : null
+        : null;
+
+  function defaultPlayerId() {
+    return selected[0]?.playerId ?? players[0]?.id ?? "";
+  }
+
+  function parseOptionalInt(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    return Number(trimmed);
+  }
+
+  function togglePlayed(index: number) {
+    const next = [...lineup];
+    const row = next[index];
+    const included = !row.included;
+    next[index] = { ...row, included, starter: included ? row.starter : false };
+    setLineup(next);
+  }
+
+  function toggleStarter(index: number, checked: boolean) {
+    const row = lineup[index];
+    if (checked && !row.starter && starters.length >= 11) {
+      setMessage("Najviše 11 igrača u prvoj postavi.");
+      return;
+    }
+    const next = [...lineup];
+    next[index] = { ...row, starter: checked, included: checked || row.included };
+    setLineup(next);
+  }
 
   function submit() {
+    const parsedHome = parseOptionalInt(homeScore);
+    const parsedAway = parseOptionalInt(awayScore);
     const payload: MatchStatisticsInput = {
+      homeScore: parsedHome,
+      awayScore: parsedAway,
       lineups: selected.map((row) => ({
         playerId: row.playerId,
         starter: row.starter,
@@ -83,10 +142,17 @@ export function MatchStatsForm({
         saves: row.saves ?? 0,
         penaltySaves: row.penaltySaves ?? 0,
       })),
+      substitutions: substitutions
+        .filter((sub) => sub.playerOutId && sub.playerInId)
+        .map((sub) => ({
+          playerOutId: sub.playerOutId,
+          playerInId: sub.playerInId,
+          minute: sub.minute,
+        })),
       goals: goals.map((goal) => ({
         playerId: goal.playerId,
         assistPlayerId: goal.ownGoal ? null : goal.assistPlayerId || null,
-        minute: Number(goal.minute),
+        minute: goal.minute,
         ownGoal: Boolean(goal.ownGoal),
       })),
       cards: cards.map((card) => ({
@@ -105,7 +171,7 @@ export function MatchStatsForm({
       const result = await saveMatchStatisticsAction(match.id, payload);
       setMessage(
         result.ok
-          ? "Sačuvano. Fantasy bodovi su automatski preračunati iz statistike."
+          ? "Sačuvano. Fantasy bodovi su preračunati, a bodovi su primijenjeni na tabelu ako je rezultat unesen."
           : result.error,
       );
     });
@@ -129,107 +195,201 @@ export function MatchStatsForm({
         </p>
       ) : null}
 
-      <section className="overflow-x-auto rounded-xl border border-navy/10 bg-white">
-        <h2 className="border-b border-navy/10 px-4 py-3 font-display text-xl">Sastav</h2>
-        <table className="w-full min-w-[760px] text-sm">
-          <thead className="bg-cream text-left">
-            <tr>
-              <th className="px-3 py-2">U sastavu</th>
-              <th className="px-3 py-2">Igrač</th>
-              <th className="px-3 py-2">Starter</th>
-              <th className="px-3 py-2">Ulazak</th>
-              <th className="px-3 py-2">Izlazak</th>
-              <th className="px-3 py-2">Minute</th>
-            </tr>
-          </thead>
-          <tbody>
-            {lineup.map((row, index) => {
-              const player = players.find((item) => item.id === row.playerId);
-              if (!player) return null;
-              return (
-                <tr key={row.playerId} className="border-t border-navy/10">
-                  <td className="px-3 py-2">
-                    <input
-                      type="checkbox"
-                      checked={row.included}
-                      onChange={(event) => {
-                        const next = [...lineup];
-                        next[index] = { ...row, included: event.target.checked };
-                        setLineup(next);
-                      }}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="mr-2 font-display text-gold">{player.jerseyNumber ?? ""}</span>
-                    {playerFullName(player)}
-                    <span className="ml-2 text-xs text-muted">{positionLabel(player.position)}</span>
-                  </td>
-                  <td className="px-3 py-2">
+      <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <h2 className="mb-3 font-display text-xl">Rezultat</h2>
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <p className="min-w-0 flex-1 text-right font-display text-lg text-navy sm:text-xl">
+            {match.homeTeam.name}
+          </p>
+          <input
+            type="number"
+            min={0}
+            max={30}
+            inputMode="numeric"
+            aria-label={`Golovi ${match.homeTeam.name}`}
+            className="h-14 w-16 rounded-lg border border-navy/20 bg-cream text-center font-display text-3xl text-navy"
+            value={homeScore}
+            onChange={(event) => setHomeScore(event.target.value)}
+          />
+          <span className="font-display text-2xl text-muted">:</span>
+          <input
+            type="number"
+            min={0}
+            max={30}
+            inputMode="numeric"
+            aria-label={`Golovi ${match.awayTeam.name}`}
+            className="h-14 w-16 rounded-lg border border-navy/20 bg-cream text-center font-display text-3xl text-navy"
+            value={awayScore}
+            onChange={(event) => setAwayScore(event.target.value)}
+          />
+          <p className="min-w-0 flex-1 font-display text-lg text-navy sm:text-xl">{match.awayTeam.name}</p>
+        </div>
+        <p className="mt-3 text-center text-xs text-muted">
+          Unesite rezultat prije statistike. Nakon čuvanja bodovi idu na tabelu (3 za pobjedu, 1 za neriješeno).
+        </p>
+      </section>
+
+      <section className="rounded-xl border border-navy/10 bg-white">
+        <div className="border-b border-navy/10 px-4 py-3">
+          <h2 className="font-display text-xl">Sastav</h2>
+          <p className="mt-1 text-xs text-muted">
+            Kliknite igrača ako je igrao. Desno veliki checkbox označava prvih 11. Označeno: {selected.length}, prva
+            postava: {starters.length}/11.
+          </p>
+        </div>
+        <ul className="divide-y divide-navy/10">
+          {lineup.map((row, index) => {
+            const player = players.find((item) => item.id === row.playerId);
+            if (!player) return null;
+            return (
+              <li key={row.playerId}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => togglePlayed(index)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      togglePlayed(index);
+                    }
+                  }}
+                  className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors ${
+                    row.included
+                      ? row.starter
+                        ? "bg-navy text-white"
+                        : "bg-gold/30 text-navy"
+                      : "bg-white text-navy hover:bg-cream"
+                  }`}
+                >
+                  <span className="w-8 shrink-0 font-display text-lg text-gold">
+                    {player.jerseyNumber ?? ""}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium">{playerFullName(player)}</span>
+                    <span className={`text-xs ${row.included && row.starter ? "text-white/70" : "text-muted"}`}>
+                      {positionLabel(player.position)}
+                      {row.included ? (row.starter ? " · prvih 11" : " · igrao") : ""}
+                    </span>
+                  </span>
+                  <label
+                    className="flex shrink-0 flex-col items-center gap-1"
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
                     <input
                       type="checkbox"
                       checked={row.starter}
-                      onChange={(event) => {
-                        const next = [...lineup];
-                        next[index] = { ...row, starter: event.target.checked, included: true };
-                        setLineup(next);
-                      }}
+                      aria-label={`${playerFullName(player)} u prvih 11`}
+                      className="h-7 w-7 accent-gold"
+                      onChange={(event) => toggleStarter(index, event.target.checked)}
                     />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={130}
-                      className="w-20 rounded border border-navy/20 px-2 py-1"
-                      value={row.enteredAt ?? ""}
-                      onChange={(event) => {
-                        const next = [...lineup];
-                        next[index] = { ...row, enteredAt: event.target.value === "" ? null : Number(event.target.value) };
-                        setLineup(next);
-                      }}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={130}
-                      className="w-20 rounded border border-navy/20 px-2 py-1"
-                      value={row.substitutedAt ?? ""}
-                      onChange={(event) => {
-                        const next = [...lineup];
-                        next[index] = {
-                          ...row,
-                          substitutedAt: event.target.value === "" ? null : Number(event.target.value),
-                        };
-                        setLineup(next);
-                      }}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      min={0}
-                      max={130}
-                      className="w-20 rounded border border-navy/20 px-2 py-1"
-                      value={row.minutes ?? ""}
-                      placeholder="auto"
-                      onChange={(event) => {
-                        const next = [...lineup];
-                        next[index] = { ...row, minutes: event.target.value === "" ? null : Number(event.target.value) };
-                        setLineup(next);
-                      }}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <span className={`text-[10px] uppercase tracking-wide ${row.starter ? "text-gold" : "text-muted"}`}>
+                      XI
+                    </span>
+                  </label>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
         <p className="px-4 py-3 text-xs text-muted">
-          Ako minute ostavite prazne: starter = 90, ili minuta izlaska; izmjena = 90 − ulazak. Fantasy bodove ne unosite
-          ručno — sistem ih računa nakon čuvanja.
+          Minute se računaju same: starter = 90 ili minuta izlaska; izmjena = 90 − ulazak. Fantasy bodove ne unosite
+          ručno.
         </p>
+      </section>
+
+      <section className="rounded-xl border border-navy/10 bg-white p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-xl">Zamjene</h2>
+          <button
+            type="button"
+            className="text-sm text-navy hover:text-gold-dark"
+            onClick={() => {
+              const outId = starters[0]?.playerId ?? selected[0]?.playerId ?? "";
+              const inId = bench[0]?.playerId ?? "";
+              setSubstitutions([
+                ...substitutions,
+                { playerOutId: outId, playerInId: inId, minute: null },
+              ]);
+            }}
+          >
+            Dodaj zamjenu
+          </button>
+        </div>
+        <p className="mb-3 text-xs text-muted">Minut nije obavezan. Igrač koji ulazi biće označen da je igrao.</p>
+        <div className="space-y-3">
+          {substitutions.map((sub, index) => (
+            <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1fr_6rem_auto]">
+              <select
+                className="rounded border border-navy/20 px-2 py-2 text-sm"
+                value={sub.playerOutId}
+                onChange={(event) => {
+                  const next = [...substitutions];
+                  next[index] = { ...sub, playerOutId: event.target.value };
+                  setSubstitutions(next);
+                }}
+              >
+                <option value="">Izašao</option>
+                {selected.map((row) => {
+                  const player = players.find((item) => item.id === row.playerId);
+                  return (
+                    <option key={row.playerId} value={row.playerId}>
+                      {player ? playerFullName(player) : row.playerId}
+                    </option>
+                  );
+                })}
+              </select>
+              <select
+                className="rounded border border-navy/20 px-2 py-2 text-sm"
+                value={sub.playerInId}
+                onChange={(event) => {
+                  const playerId = event.target.value;
+                  const nextSubs = [...substitutions];
+                  nextSubs[index] = { ...sub, playerInId: playerId };
+                  setSubstitutions(nextSubs);
+                  setLineup(
+                    lineup.map((row) =>
+                      row.playerId === playerId ? { ...row, included: true, starter: false } : row,
+                    ),
+                  );
+                }}
+              >
+                <option value="">Ušao</option>
+                {lineup.map((row) => {
+                  const player = players.find((item) => item.id === row.playerId);
+                  return (
+                    <option key={row.playerId} value={row.playerId}>
+                      {player ? playerFullName(player) : row.playerId}
+                    </option>
+                  );
+                })}
+              </select>
+              <input
+                type="number"
+                min={0}
+                max={130}
+                placeholder="min"
+                className="rounded border border-navy/20 px-2 py-2 text-sm"
+                value={sub.minute ?? ""}
+                onChange={(event) => {
+                  const next = [...substitutions];
+                  next[index] = {
+                    ...sub,
+                    minute: event.target.value === "" ? null : Number(event.target.value),
+                  };
+                  setSubstitutions(next);
+                }}
+              />
+              <button
+                type="button"
+                className="text-sm text-red"
+                onClick={() => setSubstitutions(substitutions.filter((_, i) => i !== index))}
+              >
+                Ukloni
+              </button>
+            </div>
+          ))}
+        </div>
       </section>
 
       {keepers.length > 0 ? (
@@ -288,21 +448,12 @@ export function MatchStatsForm({
           <button
             type="button"
             className="text-sm text-navy hover:text-gold-dark"
-            onClick={() =>
-              setGoals([
-                ...goals,
-                {
-                  playerId: selected[0]?.playerId ?? players[0]?.id ?? "",
-                  assistPlayerId: "",
-                  minute: 1,
-                  ownGoal: false,
-                },
-              ])
-            }
+            onClick={() => setGoals([...goals, emptyGoal(defaultPlayerId())])}
           >
-            Dodaj gol
+            Novi gol
           </button>
         </div>
+        <p className="mb-3 text-xs text-muted">Asistent i minut nisu obavezni.</p>
         <div className="space-y-3">
           {goals.map((goal, index) => (
             <div key={index} className="grid gap-2 sm:grid-cols-[1fr_1fr_6rem_auto_auto]">
@@ -348,11 +499,12 @@ export function MatchStatsForm({
                 type="number"
                 min={0}
                 max={130}
+                placeholder="min"
                 className="rounded border border-navy/20 px-2 py-1 text-sm"
-                value={goal.minute}
+                value={goal.minute ?? ""}
                 onChange={(event) => {
                   const next = [...goals];
-                  next[index] = { ...goal, minute: Number(event.target.value) };
+                  next[index] = { ...goal, minute: event.target.value === "" ? null : Number(event.target.value) };
                   setGoals(next);
                 }}
               />
@@ -383,7 +535,7 @@ export function MatchStatsForm({
             type="button"
             className="text-sm text-navy hover:text-gold-dark"
             onClick={() =>
-              setCards([...cards, { playerId: selected[0]?.playerId ?? players[0]?.id ?? "", type: "YELLOW", minute: 1 }])
+              setCards([...cards, { playerId: defaultPlayerId(), type: "YELLOW", minute: 1 }])
             }
           >
             Dodaj karton
@@ -450,10 +602,7 @@ export function MatchStatsForm({
             type="button"
             className="text-sm text-navy hover:text-gold-dark"
             onClick={() =>
-              setPenaltyMisses([
-                ...penaltyMisses,
-                { playerId: selected[0]?.playerId ?? players[0]?.id ?? "", minute: 1 },
-              ])
+              setPenaltyMisses([...penaltyMisses, { playerId: defaultPlayerId(), minute: 1 }])
             }
           >
             Dodaj
@@ -516,9 +665,9 @@ export function MatchStatsForm({
           </button>
         </div>
         <p className="mb-3 text-xs text-muted">
-          SportDC skor protivnika: {goalsAgainst == null ? "još nije poznat" : goalsAgainst}. Unesite minutu svakog
-          primljenog gola da bi clean sheet mogao da ostane igraču koji je izašao prije gola. Bez minuta, clean sheet se
-          ne dodjeljuje ako je tim primio gol.
+          Skor protivnika: {goalsAgainst == null || Number.isNaN(goalsAgainst) ? "još nije poznat" : goalsAgainst}.
+          Unesite minutu svakog primljenog gola da bi clean sheet mogao da ostane igraču koji je izašao prije gola.
+          Bez minuta, clean sheet se ne dodjeljuje ako je tim primio gol.
         </p>
         <div className="flex flex-wrap gap-3">
           {concededGoals.map((row, index) => (

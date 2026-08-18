@@ -2,13 +2,15 @@ import { z } from "zod";
 import { idSchema } from "./queries";
 
 const minuteSchema = z.number().int().min(0).max(130);
+const optionalMinuteSchema = minuteSchema.optional().nullable();
+const optionalScoreSchema = z.number().int().min(0).max(30).optional().nullable();
 
 export const lineupRowSchema = z.object({
   playerId: idSchema,
   starter: z.boolean(),
   minutes: z.number().int().min(0).max(130).optional().nullable(),
-  enteredAt: minuteSchema.optional().nullable(),
-  substitutedAt: minuteSchema.optional().nullable(),
+  enteredAt: optionalMinuteSchema,
+  substitutedAt: optionalMinuteSchema,
   goals: z.number().int().min(0).max(20).optional(),
   assists: z.number().int().min(0).max(20).optional(),
   yellowCards: z.number().int().min(0).max(2).optional(),
@@ -20,7 +22,7 @@ export const lineupRowSchema = z.object({
 export const matchGoalInputSchema = z.object({
   playerId: idSchema,
   assistPlayerId: idSchema.optional().nullable(),
-  minute: minuteSchema,
+  minute: optionalMinuteSchema,
   ownGoal: z.boolean().optional().default(false),
 });
 
@@ -39,15 +41,34 @@ export const matchConcededGoalInputSchema = z.object({
   minute: minuteSchema,
 });
 
+export const matchSubstitutionInputSchema = z.object({
+  playerOutId: idSchema,
+  playerInId: idSchema,
+  minute: optionalMinuteSchema,
+});
+
 export const matchStatisticsSchema = z
   .object({
+    homeScore: optionalScoreSchema,
+    awayScore: optionalScoreSchema,
     lineups: z.array(lineupRowSchema).max(25),
+    substitutions: z.array(matchSubstitutionInputSchema).max(20).optional().default([]),
     goals: z.array(matchGoalInputSchema).max(30).optional().default([]),
     cards: z.array(matchCardInputSchema).max(30).optional().default([]),
     penaltyMisses: z.array(matchPenaltyMissInputSchema).max(20).optional().default([]),
     concededGoals: z.array(matchConcededGoalInputSchema).max(20).optional().default([]),
   })
   .superRefine((data, ctx) => {
+    const homeSet = data.homeScore != null;
+    const awaySet = data.awayScore != null;
+    if (homeSet !== awaySet) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Unesite oba broja rezultata",
+        path: [homeSet ? "awayScore" : "homeScore"],
+      });
+    }
+
     const ids = data.lineups.map((row) => row.playerId);
     if (new Set(ids).size !== ids.length) {
       ctx.addIssue({ code: "custom", message: "Isti igrač ne može biti dvaput u sastavu", path: ["lineups"] });
@@ -109,8 +130,33 @@ export const matchStatisticsSchema = z
         });
       }
     }
+
+    for (const [index, sub] of data.substitutions.entries()) {
+      if (sub.playerOutId === sub.playerInId) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Zamjena mora biti između dva različita igrača",
+          path: ["substitutions", index, "playerInId"],
+        });
+      }
+      if (!lineupSet.has(sub.playerOutId)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Igrač koji izlazi mora biti u sastavu",
+          path: ["substitutions", index, "playerOutId"],
+        });
+      }
+      if (!lineupSet.has(sub.playerInId)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Igrač koji ulazi mora biti u sastavu",
+          path: ["substitutions", index, "playerInId"],
+        });
+      }
+    }
   });
 
 export type LineupRowInput = z.input<typeof lineupRowSchema>;
+export type MatchSubstitutionInput = z.input<typeof matchSubstitutionInputSchema>;
 export type MatchStatisticsInput = z.input<typeof matchStatisticsSchema>;
 export type MatchStatistics = z.output<typeof matchStatisticsSchema>;

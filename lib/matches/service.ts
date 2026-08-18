@@ -34,6 +34,10 @@ export const matchDetailInclude = {
   concededGoals: {
     orderBy: { minute: "asc" },
   },
+  substitutions: {
+    include: { playerOut: true, playerIn: true },
+    orderBy: [{ sortOrder: "asc" }, { minute: "asc" }],
+  },
 } satisfies Prisma.MatchInclude;
 
 export type MatchListItem = Prisma.MatchGetPayload<{ include: typeof matchListInclude }>;

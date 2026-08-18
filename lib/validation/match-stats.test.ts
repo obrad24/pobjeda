@@ -32,6 +32,54 @@ describe("matchStatisticsSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts a goal without minute or assist", () => {
+    const result = matchStatisticsSchema.safeParse({
+      lineups: [{ playerId: "p1", starter: true }],
+      goals: [{ playerId: "p1" }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.goals[0]?.minute ?? null).toBeNull();
+      expect(result.data.goals[0]?.assistPlayerId ?? null).toBeNull();
+    }
+  });
+
+  it("accepts substitutions with optional minutes", () => {
+    const result = matchStatisticsSchema.safeParse({
+      lineups: [
+        { playerId: "p1", starter: true },
+        { playerId: "p2", starter: false },
+      ],
+      substitutions: [{ playerOutId: "p1", playerInId: "p2" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a substitution with the same player twice", () => {
+    const result = matchStatisticsSchema.safeParse({
+      lineups: [{ playerId: "p1", starter: true }],
+      substitutions: [{ playerOutId: "p1", playerInId: "p1", minute: 60 }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("requires both scores when one is provided", () => {
+    const result = matchStatisticsSchema.safeParse({
+      lineups: [{ playerId: "p1", starter: true }],
+      homeScore: 2,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a finished result", () => {
+    const result = matchStatisticsSchema.safeParse({
+      lineups: [{ playerId: "p1", starter: true }],
+      homeScore: 2,
+      awayScore: 0,
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("rejects an assist on an own goal", () => {
     const result = matchStatisticsSchema.safeParse({
       lineups: [

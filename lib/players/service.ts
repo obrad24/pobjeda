@@ -156,12 +156,13 @@ export async function getPlayerUsage(id: string) {
   const playerId = parseOrThrow(playerIdSchema, id);
   await getPlayer(playerId);
 
-  const [appearances, goals, assists, cards, penaltyMisses, fantasyPoints] = await Promise.all([
+  const [appearances, goals, assists, cards, penaltyMisses, substitutions, fantasyPoints] = await Promise.all([
     prisma.matchPlayer.count({ where: { playerId } }),
     prisma.matchGoal.count({ where: { playerId } }),
     prisma.matchGoal.count({ where: { assistPlayerId: playerId } }),
     prisma.matchCard.count({ where: { playerId } }),
     prisma.matchPenaltyMiss.count({ where: { playerId } }),
+    prisma.matchSubstitution.count({ where: { OR: [{ playerOutId: playerId }, { playerInId: playerId }] } }),
     prisma.fantasyMatchPoints.count({ where: { playerId } }),
   ]);
 
@@ -171,8 +172,9 @@ export async function getPlayerUsage(id: string) {
     assists,
     cards,
     penaltyMisses,
+    substitutions,
     fantasyPoints,
-    canDelete: appearances + goals + assists + cards + penaltyMisses + fantasyPoints === 0,
+    canDelete: appearances + goals + assists + cards + penaltyMisses + substitutions + fantasyPoints === 0,
   };
 }
 

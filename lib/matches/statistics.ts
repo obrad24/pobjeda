@@ -1,16 +1,18 @@
-import { CardType } from "../../generated/prisma";
+import { CardType, MatchStatus } from "../../generated/prisma";
 import { getOurTeam } from "../context";
 import { prisma } from "../db/prisma";
 import { NotFoundError, ValidationError } from "../errors";
 import { recalculateMatchFantasy } from "../fantasy/recalculate";
+import { applyMatchResultToStandings } from "../league/apply-match-result";
 import { parseOrThrow } from "../validation/parse";
 import { idSchema } from "../validation/queries";
 import {
   matchStatisticsSchema,
   type MatchStatisticsInput,
 } from "../validation/match-stats";
-import { getMatch } from "./service";
+import { getMatch, matchDetailInclude } from "./service";
 import { resolveMinutes } from "./minutes";
+import { applySubstitutionsToLineups } from "./substitutions";
 
 function yellowCount(type: CardType): number {
   return type === CardType.RED ? 0 : 1;
@@ -33,12 +35,14 @@ export async function saveMatchStatistics(matchId: string, input: MatchStatistic
   const id = parseOrThrow(idSchema, matchId);
   const data = parseOrThrow(matchStatisticsSchema, input);
   const match = await assertOurMatch(id);
+  const lineups = applySubstitutionsToLineups(data.lineups, data.substitutions);
 
   const playerIds = [
-    ...data.lineups.map((row) => row.playerId),
+    ...lineups.map((row) => row.playerId),
     ...data.goals.flatMap((goal) => [goal.playerId, goal.assistPlayerId ?? ""]),
     ...data.cards.map((card) => card.playerId),
     ...data.penaltyMisses.map((row) => row.playerId),
+    ...data.substitutions.flatMap((sub) => [sub.playerOutId, sub.playerInId]),
   ].filter(Boolean);
 
   const uniqueIds = [...new Set(playerIds)];
@@ -54,89 +58,129 @@ export async function saveMatchStatistics(matchId: string, input: MatchStatistic
 
   const hasGoalEvents = data.goals.length > 0;
   const hasCardEvents = data.cards.length > 0;
+  const hasScore = data.homeScore != null && data.awayScore != null;
 
-  await prisma.$transaction(async (tx) => {
-    await tx.matchGoal.deleteMany({ where: { matchId: id } });
-    await tx.matchCard.deleteMany({ where: { matchId: id } });
-    await tx.matchPenaltyMiss.deleteMany({ where: { matchId: id } });
-    await tx.matchConcededGoal.deleteMany({ where: { matchId: id } });
-    await tx.matchPlayer.deleteMany({ where: { matchId: id } });
+  await prisma.$transaction(
+    async (tx) => {
+      if (hasScore) {
+        await tx.match.update({
+          where: { id },
+          data: {
+            homeScore: data.homeScore,
+            awayScore: data.awayScore,
+            status: MatchStatus.FINISHED,
+          },
+        });
+        await applyMatchResultToStandings(tx, match, {
+          homeScore: data.homeScore!,
+          awayScore: data.awayScore!,
+        });
+      }
 
-    for (const row of data.lineups) {
-      const eventGoals = data.goals.filter((goal) => goal.playerId === row.playerId && !goal.ownGoal).length;
-      const eventAssists = data.goals.filter(
-        (goal) => goal.assistPlayerId === row.playerId && !goal.ownGoal,
-      ).length;
-      const eventCards = data.cards.filter((card) => card.playerId === row.playerId);
+      await tx.matchGoal.deleteMany({ where: { matchId: id } });
+      await tx.matchCard.deleteMany({ where: { matchId: id } });
+      await tx.matchPenaltyMiss.deleteMany({ where: { matchId: id } });
+      await tx.matchConcededGoal.deleteMany({ where: { matchId: id } });
+      await tx.matchSubstitution.deleteMany({ where: { matchId: id } });
+      await tx.matchPlayer.deleteMany({ where: { matchId: id } });
 
-      await tx.matchPlayer.create({
-        data: {
-          matchId: id,
-          playerId: row.playerId,
-          starter: row.starter,
-          minutes: resolveMinutes(row),
-          enteredAt: row.enteredAt ?? null,
-          substitutedAt: row.substitutedAt ?? null,
-          goals: hasGoalEvents ? eventGoals : (row.goals ?? 0),
-          assists: hasGoalEvents ? eventAssists : (row.assists ?? 0),
-          yellowCards: hasCardEvents
-            ? eventCards.reduce((sum, card) => sum + yellowCount(card.type as CardType), 0)
-            : (row.yellowCards ?? 0),
-          redCards: hasCardEvents
-            ? eventCards.reduce((sum, card) => sum + redCount(card.type as CardType), 0)
-            : (row.redCards ?? 0),
-          saves: row.saves ?? 0,
-          penaltySaves: row.penaltySaves ?? 0,
-        },
-      });
-    }
+      if (lineups.length > 0) {
+        await tx.matchPlayer.createMany({
+          data: lineups.map((row) => {
+            const eventGoals = data.goals.filter((goal) => goal.playerId === row.playerId && !goal.ownGoal).length;
+            const eventAssists = data.goals.filter(
+              (goal) => goal.assistPlayerId === row.playerId && !goal.ownGoal,
+            ).length;
+            const eventCards = data.cards.filter((card) => card.playerId === row.playerId);
+            return {
+              matchId: id,
+              playerId: row.playerId,
+              starter: row.starter,
+              minutes: resolveMinutes(row),
+              enteredAt: row.enteredAt ?? null,
+              substitutedAt: row.substitutedAt ?? null,
+              goals: hasGoalEvents ? eventGoals : (row.goals ?? 0),
+              assists: hasGoalEvents ? eventAssists : (row.assists ?? 0),
+              yellowCards: hasCardEvents
+                ? eventCards.reduce((sum, card) => sum + yellowCount(card.type as CardType), 0)
+                : (row.yellowCards ?? 0),
+              redCards: hasCardEvents
+                ? eventCards.reduce((sum, card) => sum + redCount(card.type as CardType), 0)
+                : (row.redCards ?? 0),
+              saves: row.saves ?? 0,
+              penaltySaves: row.penaltySaves ?? 0,
+            };
+          }),
+        });
+      }
 
-    if (data.goals.length > 0) {
-      await tx.matchGoal.createMany({
-        data: data.goals.map((goal) => ({
-          matchId: id,
-          playerId: goal.playerId,
-          assistPlayerId: goal.ownGoal ? null : (goal.assistPlayerId ?? null),
-          minute: goal.minute,
-          ownGoal: goal.ownGoal ?? false,
-        })),
-      });
-    }
+      if (data.goals.length > 0) {
+        await tx.matchGoal.createMany({
+          data: data.goals.map((goal) => ({
+            matchId: id,
+            playerId: goal.playerId,
+            assistPlayerId: goal.ownGoal ? null : (goal.assistPlayerId ?? null),
+            minute: goal.minute ?? null,
+            ownGoal: goal.ownGoal ?? false,
+          })),
+        });
+      }
 
-    if (data.cards.length > 0) {
-      await tx.matchCard.createMany({
-        data: data.cards.map((card) => ({
-          matchId: id,
-          playerId: card.playerId,
-          type: card.type as CardType,
-          minute: card.minute,
-        })),
-      });
-    }
+      if (data.cards.length > 0) {
+        await tx.matchCard.createMany({
+          data: data.cards.map((card) => ({
+            matchId: id,
+            playerId: card.playerId,
+            type: card.type as CardType,
+            minute: card.minute,
+          })),
+        });
+      }
 
-    if (data.penaltyMisses.length > 0) {
-      await tx.matchPenaltyMiss.createMany({
-        data: data.penaltyMisses.map((row) => ({
-          matchId: id,
-          playerId: row.playerId,
-          minute: row.minute,
-        })),
-      });
-    }
+      if (data.penaltyMisses.length > 0) {
+        await tx.matchPenaltyMiss.createMany({
+          data: data.penaltyMisses.map((row) => ({
+            matchId: id,
+            playerId: row.playerId,
+            minute: row.minute,
+          })),
+        });
+      }
 
-    if (data.concededGoals.length > 0) {
-      await tx.matchConcededGoal.createMany({
-        data: data.concededGoals.map((row) => ({
-          matchId: id,
-          minute: row.minute,
-        })),
-      });
-    }
-  });
+      if (data.concededGoals.length > 0) {
+        await tx.matchConcededGoal.createMany({
+          data: data.concededGoals.map((row) => ({
+            matchId: id,
+            minute: row.minute,
+          })),
+        });
+      }
+
+      if (data.substitutions.length > 0) {
+        await tx.matchSubstitution.createMany({
+          data: data.substitutions.map((sub, index) => ({
+            matchId: id,
+            playerOutId: sub.playerOutId,
+            playerInId: sub.playerInId,
+            minute: sub.minute ?? null,
+            sortOrder: index,
+          })),
+        });
+      }
+    },
+    { timeout: 20_000, maxWait: 10_000 },
+  );
 
   await recalculateMatchFantasy(id);
 
-  return getMatch(match.id);
+  const saved = await prisma.match.findUnique({
+    where: { id },
+    include: matchDetailInclude,
+  });
+  if (!saved) {
+    throw new NotFoundError("Utakmica nije pronađena");
+  }
+  return saved;
 }
 
 export async function saveMatchLineup(
@@ -147,6 +191,13 @@ export async function saveMatchLineup(
   const allowed = new Set(lineups.map((row) => row.playerId));
   return saveMatchStatistics(matchId, {
     lineups,
+    substitutions: existing.substitutions
+      .filter((sub) => allowed.has(sub.playerOutId) && allowed.has(sub.playerInId))
+      .map((sub) => ({
+        playerOutId: sub.playerOutId,
+        playerInId: sub.playerInId,
+        minute: sub.minute,
+      })),
     goals: existing.goals
       .filter((goal) => allowed.has(goal.playerId) && (!goal.assistPlayerId || allowed.has(goal.assistPlayerId)))
       .map((goal) => ({
@@ -183,6 +234,11 @@ export async function saveMatchEvents(
       substitutedAt: row.substitutedAt,
       saves: row.saves,
       penaltySaves: row.penaltySaves,
+    })),
+    substitutions: existing.substitutions.map((sub) => ({
+      playerOutId: sub.playerOutId,
+      playerInId: sub.playerInId,
+      minute: sub.minute,
     })),
     goals: events.goals ?? [],
     cards: events.cards ?? [],

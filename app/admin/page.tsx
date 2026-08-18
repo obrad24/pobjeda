@@ -91,8 +91,7 @@ export default async function AdminHomePage() {
         <p className="rounded-xl border border-red/20 bg-red/10 px-4 py-3 text-sm text-red">{sync.lastError}</p>
       ) : null}
       <p className="text-sm text-muted">
-        SportDC i dalje daje rezultat, raspored i tabelu. Ovdje se unosi sastav, minute, golovi, asistencije, kartoni i
-        istorija kluba.
+        SportDC i dalje daje raspored. Rezultat, sastav, golovi, zamjene i tabela unose se ovdje nakon utakmice.
       </p>
     </div>
   );

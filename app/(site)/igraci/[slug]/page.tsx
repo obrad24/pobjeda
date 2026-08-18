@@ -12,7 +12,7 @@ import {
   seasonLabel,
 } from "@/lib/format";
 import { orNotFound } from "@/lib/not-found";
-import { getPlayerBySlug } from "@/lib/players";
+import { getPlayerBySlug, parseFormerClubs } from "@/lib/players";
 import { getOurTeam } from "@/lib/context";
 import { getPlayerAppearances, getPlayerStatistics } from "@/lib/stats";
 import { FantasyBreakdownList } from "@/components/fantasy/FantasyBreakdownList";
@@ -76,11 +76,15 @@ export default async function PlayerProfilePage({ params }: Props) {
               {positionLabel(player.position)}
               {player.birthYear ? ` · ${player.birthYear}` : ""}
             </p>
-            {player.formerClubs ? (
-              <p className="mt-4 text-sm leading-6 text-navy/80">
+            {parseFormerClubs(player.formerClubs).length > 0 ? (
+              <div className="mt-4 text-sm leading-6 text-navy/80">
                 <span className="block text-xs uppercase tracking-wide text-muted">Bivši klubovi</span>
-                {player.formerClubs}
-              </p>
+                <ul className="mt-1 space-y-0.5">
+                  {parseFormerClubs(player.formerClubs).map((club) => (
+                    <li key={club}>{club}</li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
           </div>
         </div>

@@ -8,3 +8,4 @@ export {
   getPlayers,
   updatePlayer,
 } from "./service";
+export { joinFormerClubs, parseFormerClubs } from "./former-clubs";
