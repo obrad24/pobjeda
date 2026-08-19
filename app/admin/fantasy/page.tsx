@@ -38,8 +38,22 @@ export default async function AdminFantasyPage({
 
       <section className="overflow-hidden rounded-xl border border-navy/10 bg-white">
         <h2 className="border-b border-navy/10 px-4 py-3 font-display text-xl">Scoring rules</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
+        <ul className="divide-y divide-navy/10 sm:hidden">
+          {overview.rules.map((rule) => (
+            <li key={rule.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+              <span className="min-w-0">
+                <span className="block truncate font-medium text-navy">{rule.name}</span>
+                <span className="block truncate font-mono text-[10px] text-muted">{rule.key}</span>
+              </span>
+              <span className="shrink-0 text-right">
+                <span className="block font-display text-lg tabular-nums text-navy">{rule.points}</span>
+                <span className="text-[10px] text-muted">{rule.active ? "aktivno" : "neaktivno"}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden sm:block">
+          <table className="w-full text-sm text-navy">
             <thead className="bg-cream text-left">
               <tr>
                 <th className="px-4 py-2">Ključ</th>

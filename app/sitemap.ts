@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     "",
     "/igraci",
+    "/formacija",
     "/statistika",
     "/fantasy",
     "/liga",

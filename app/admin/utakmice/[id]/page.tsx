@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { MatchStatsForm } from "@/components/admin/MatchStatsForm";
+import { ConfirmSubmit } from "@/components/admin/ConfirmSubmit";
+import { resetMatchStatisticsAction } from "@/app/admin/utakmice/actions";
 import { getOurTeam } from "@/lib/context";
 import { formatMatchDate, isOurMatch, opponentOf, roundLabel, scoreLabel } from "@/lib/format";
 import { getMatch, ourEnteredGoalsMismatch } from "@/lib/matches";
@@ -23,6 +25,14 @@ export default async function AdminMatchPage({ params }: Props) {
   const active = players.filter((player) => player.active || match.lineups.some((row) => row.playerId === player.id));
   const opponent = ours ? opponentOf(match, ourTeam.id) : null;
   const warning = ours ? ourEnteredGoalsMismatch(match, ourTeam.id) : null;
+  const hasStatistics =
+    match.lineups.length +
+      match.goals.length +
+      match.cards.length +
+      match.penaltyMisses.length +
+      match.concededGoals.length +
+      match.substitutions.length >
+    0;
 
   return (
     <div className="space-y-6">
@@ -38,6 +48,19 @@ export default async function AdminMatchPage({ params }: Props) {
           Javna stranica
         </Link>
       </div>
+      {ours && hasStatistics ? (
+        <ConfirmSubmit
+          action={resetMatchStatisticsAction.bind(null, match.id)}
+          message="Resetovati statistiku ovog meča? Biće obrisani sastav, događaji i fantasy bodovi, dok rezultat ostaje sačuvan."
+        >
+          <button
+            type="submit"
+            className="rounded-full border border-red/30 bg-red/10 px-4 py-2 text-sm font-medium text-red transition hover:bg-red/20"
+          >
+            Resetuj statistiku
+          </button>
+        </ConfirmSubmit>
+      ) : null}
       {ours ? (
         <MatchStatsForm match={match} players={active} warning={warning} />
       ) : (

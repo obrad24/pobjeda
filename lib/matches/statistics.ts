@@ -183,6 +183,26 @@ export async function saveMatchStatistics(matchId: string, input: MatchStatistic
   return saved;
 }
 
+export async function resetMatchStatistics(matchId: string) {
+  const id = parseOrThrow(idSchema, matchId);
+  const match = await assertOurMatch(id);
+
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.fantasyMatchPoints.deleteMany({ where: { matchId: id } });
+      await tx.matchGoal.deleteMany({ where: { matchId: id } });
+      await tx.matchCard.deleteMany({ where: { matchId: id } });
+      await tx.matchPenaltyMiss.deleteMany({ where: { matchId: id } });
+      await tx.matchConcededGoal.deleteMany({ where: { matchId: id } });
+      await tx.matchSubstitution.deleteMany({ where: { matchId: id } });
+      await tx.matchPlayer.deleteMany({ where: { matchId: id } });
+    },
+    { timeout: 20_000, maxWait: 10_000 },
+  );
+
+  return match;
+}
+
 export async function saveMatchLineup(
   matchId: string,
   lineups: MatchStatisticsInput["lineups"],

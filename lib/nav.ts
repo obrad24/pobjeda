@@ -1,6 +1,7 @@
 export const NAV_LINKS = [
   { href: "/", label: "Početna" },
   { href: "/igraci", label: "Igrači" },
+  { href: "/formacija", label: "Formacija" },
   { href: "/statistika", label: "Statistika" },
   { href: "/fantasy", label: "Fantasy Pobjeda" },
   { href: "/liga", label: "Liga" },
