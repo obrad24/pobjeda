@@ -69,3 +69,7 @@ export type SyncSportDcResult = {
 };
 
 export const OUR_CLUB_DISPLAY_NAME = "FK Pobjeda Triješnica";
+export const OUR_CLUB_LOGO = "/logo.svg";
+export const OUR_CLUB_LOGO_PNG = "/logo.png";
+export const OUR_CLUB_LOGO_WIDTH = 893;
+export const OUR_CLUB_LOGO_HEIGHT = 744;

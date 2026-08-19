@@ -1,6 +1,6 @@
 import { fetchLeaguePage, getOurClubId } from "./client";
 import { parseStandings } from "./parser";
-import { OUR_CLUB_DISPLAY_NAME, type SportDcTeam } from "./types";
+import { OUR_CLUB_DISPLAY_NAME, OUR_CLUB_LOGO, type SportDcTeam } from "./types";
 
 function normalize(value: string): string {
   return value
@@ -14,6 +14,24 @@ function normalize(value: string): string {
 
 export function sportdcClubLogoUrl(sportdcTeamId: number): string {
   return `https://sportdc.net/img/club/${sportdcTeamId}`;
+}
+
+export function logoUrlForTeam(team: {
+  sportdcTeamId: number;
+  sportdcName: string;
+  city?: string | null;
+}): string {
+  if (isOurClub(team)) {
+    return OUR_CLUB_LOGO;
+  }
+  return sportdcClubLogoUrl(team.sportdcTeamId);
+}
+
+export function crestSrcForTeam(name: string, logo?: string | null): string | null {
+  if (name === OUR_CLUB_DISPLAY_NAME) {
+    return OUR_CLUB_LOGO;
+  }
+  return logo ?? null;
 }
 
 export function isOurClub(team: {

@@ -3,7 +3,7 @@ import { hash } from "bcryptjs";
 import { MatchStatus, Position, Role } from "../generated/prisma";
 import { prisma } from "../lib/db/prisma";
 import { ensureFantasyRules } from "../lib/fantasy";
-import { sportdcClubLogoUrl } from "../lib/sportdc/teams";
+import { logoUrlForTeam } from "../lib/sportdc/teams";
 import { slugifyName } from "../lib/utils/slug";
 
 const LEAGUE_URL =
@@ -140,7 +140,7 @@ async function main() {
           name: team.name,
           sportdcName: team.sportdcName,
           city: team.city,
-          logo: sportdcClubLogoUrl(team.sportdcTeamId),
+          logo: logoUrlForTeam(team),
           isOurTeam: team.isOurTeam ?? false,
         },
         create: {
@@ -148,7 +148,7 @@ async function main() {
           sportdcName: team.sportdcName,
           city: team.city,
           sportdcTeamId: team.sportdcTeamId,
-          logo: sportdcClubLogoUrl(team.sportdcTeamId),
+          logo: logoUrlForTeam(team),
           isOurTeam: team.isOurTeam ?? false,
         },
       }),

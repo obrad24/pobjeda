@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { teamInitials } from "@/lib/format";
+import { crestSrcForTeam } from "@/lib/sportdc/teams";
 
 export function TeamCrest({
   name,
@@ -14,17 +15,18 @@ export function TeamCrest({
 }) {
   const px = size === "lg" ? 88 : size === "md" ? 64 : size === "sm" ? 40 : 22;
   const text = size === "lg" ? "text-xl" : size === "sm" ? "text-xs" : size === "xs" ? "text-[8px]" : "text-sm";
+  const src = crestSrcForTeam(name, logo);
 
-  if (logo) {
+  if (src) {
     return (
       <Image
-        src={logo}
+        src={src}
         alt={name}
         width={px}
         height={px}
         preload={preload}
         className="object-contain p-0.5"
-        unoptimized={logo.startsWith("http")}
+        unoptimized={src.startsWith("http") || src.endsWith(".svg")}
       />
     );
   }

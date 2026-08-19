@@ -1,10 +1,11 @@
 import Image from "next/image";
 import { SITE_NAME } from "@/lib/nav";
+import { OUR_CLUB_LOGO, OUR_CLUB_LOGO_HEIGHT, OUR_CLUB_LOGO_WIDTH } from "@/lib/sportdc/types";
 
 const LOGO = {
-  src: "/logo.png",
-  width: 181,
-  height: 150,
+  src: OUR_CLUB_LOGO,
+  width: OUR_CLUB_LOGO_WIDTH,
+  height: OUR_CLUB_LOGO_HEIGHT,
 } as const;
 
 const sizes = {

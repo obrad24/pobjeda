@@ -50,12 +50,45 @@ export function PlayerPosterHero({
         {player.birthYear ? ` · ${player.birthYear}` : ""}
       </p>
       {player.jerseyNumber != null ? (
-        <p className="pointer-events-none absolute right-4 top-3 z-20 font-display text-5xl font-black tabular-nums text-white/25 sm:right-8 sm:text-7xl">
+        <p className="pointer-events-none absolute right-12.5 top-30 z-20 font-display text-7xl font-black tabular-nums text-white/25 sm:right-8 sm:text-7xl">
           {player.jerseyNumber}
         </p>
       ) : null}
 
-      <h1 className="pointer-events-none absolute inset-x-0 top-4 text-right z-0 px-5  font-display font-black uppercase italic leading-[0.88] tracking-tight text-white sm:top-[32%] sm:px-8">
+      {player.jerseyNumber != null ? (
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-[-6%] top-[10%] z-[1] select-none font-display font-black tabular-nums leading-none text-white/20 blur-[6px] sm:left-[4%] sm:top-[12%] sm:text-white/25 sm:blur-[8px]"
+          >
+            <span
+              className={
+                String(player.jerseyNumber).length > 1
+                  ? "text-[clamp(8rem,36vw,18rem)]"
+                  : "text-[clamp(11rem,48vw,24rem)]"
+              }
+            >
+              {player.jerseyNumber}
+            </span>
+          </span>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute right-[-10%] top-[28%] z-[1] select-none font-display font-black tabular-nums leading-none text-white/12 blur-[10px] sm:right-[2%] sm:top-[30%] sm:blur-[14px]"
+          >
+            <span
+              className={
+                String(player.jerseyNumber).length > 1
+                  ? "text-[clamp(7rem,30vw,15rem)]"
+                  : "text-[clamp(9rem,40vw,20rem)]"
+              }
+            >
+              {player.jerseyNumber}
+            </span>
+          </span>
+        </>
+      ) : null}
+
+      <h1 className="pointer-events-none absolute inset-x-0 top-4 z-[2] px-5 text-right font-display font-black uppercase italic leading-[0.88] tracking-tight text-white sm:top-[32%] sm:px-8">
         <span className="block text-[clamp(1.5rem,7.5vw,3.5rem)]">{player.firstName}</span>
         <span className="block text-[clamp(1.7rem,10vw,4.25rem)]">{player.lastName}</span>
       </h1>

@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/site";
+import {
+  OUR_CLUB_LOGO,
+  OUR_CLUB_LOGO_HEIGHT,
+  OUR_CLUB_LOGO_PNG,
+  OUR_CLUB_LOGO_WIDTH,
+} from "@/lib/sportdc/types";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +36,8 @@ export const metadata: Metadata = {
   },
   description,
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: OUR_CLUB_LOGO,
+    apple: OUR_CLUB_LOGO_PNG,
   },
   openGraph: {
     title: "FK Pobjeda Triješnica",
@@ -39,7 +45,14 @@ export const metadata: Metadata = {
     locale: "sr_Latn",
     type: "website",
     siteName: "FK Pobjeda Triješnica",
-    images: [{ url: "/logo.png", width: 181, height: 150, alt: "FK Pobjeda Triješnica — 50 godina" }],
+    images: [
+      {
+        url: OUR_CLUB_LOGO_PNG,
+        width: OUR_CLUB_LOGO_WIDTH,
+        height: OUR_CLUB_LOGO_HEIGHT,
+        alt: "FK Pobjeda Triješnica — 50 godina",
+      },
+    ],
   },
   twitter: {
     card: "summary",
