@@ -18,7 +18,7 @@ export function PlayerPosterHero({
   const remote = Boolean(player.image?.startsWith("http"));
 
   return (
-    <section className="player-poster relative min-h-[calc(100dvh-16.5rem)] overflow-hidden sm:min-h-160">
+    <section className="player-poster relative min-h-[calc(100svh-16.5rem)] overflow-hidden sm:min-h-160">
       {player.image ? (
         <>
           <Image
@@ -64,7 +64,7 @@ export function PlayerPosterHero({
         <PlayerPhoto player={player} size="lg" priority />
       </div>
 
-      <div className="absolute inset-x-0 bottom-3 z-20 flex items-end gap-2 overflow-x-auto px-3 sm:bottom-4 sm:px-6">
+      <div className="absolute inset-x-0 bottom-3 z-20 flex items-end gap-2 overflow-x-auto overscroll-x-contain px-3 sm:bottom-4 sm:px-6">
         {nextMatch ? (
           <Link
             href={`/utakmice/${nextMatch.id}`}
