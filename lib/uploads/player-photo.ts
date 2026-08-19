@@ -21,10 +21,12 @@ const TYPE_EXT: Record<string, string> = {
 const MAX_BYTES = 4 * 1024 * 1024;
 const LOCAL_UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "players");
 
-export function isBlobConfigured(
-  env: { BLOB_READ_WRITE_TOKEN?: string; VERCEL?: string } = process.env,
-): boolean {
-  return Boolean(env.BLOB_READ_WRITE_TOKEN) || !env.VERCEL;
+export function isBlobConfigured(env?: { BLOB_READ_WRITE_TOKEN?: string; VERCEL?: string }): boolean {
+  const source = env ?? {
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    VERCEL: process.env.VERCEL,
+  };
+  return Boolean(source.BLOB_READ_WRITE_TOKEN) || !source.VERCEL;
 }
 
 export function resolvePhotoContentType(file: { type?: string; name?: string }): string | null {
