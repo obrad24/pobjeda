@@ -140,7 +140,7 @@ export function PlayerForm({
           <div className="sm:col-span-2">
             <p className="mb-2 text-xs text-muted">Pregled</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={preview} alt="Pregled fotografije" className="h-40 w-40 rounded-lg object-cover" />
+            <img src={preview} alt="Pregled fotografije" className="h-48 w-32 rounded-lg bg-navy/5 object-contain object-bottom" />
           </div>
         ) : (
           <p className="text-sm text-muted sm:col-span-2">Nema fotografije — na javnom sajtu ostaje placeholder s brojem.</p>

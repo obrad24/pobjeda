@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { PlayerPhoto } from "@/components/players/PlayerCard";
+import { PlayerNameStack, PlayerPhoto } from "@/components/players/PlayerCard";
 
 type FormationPlayer = {
   id: string;
@@ -249,21 +249,28 @@ export function FormationBuilder({ players }: { players: FormationPlayer[] }) {
                 type="button"
                 onClick={() => setActiveSlot(fieldSlot.id)}
                 aria-label={player ? `Promijeni ${fullName(player)}` : `Dodaj igrača na poziciju ${fieldSlot.role}`}
-                className="absolute z-10 flex w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center min-[380px]:w-16 sm:w-24"
+                className={`absolute z-10 -translate-x-1/2 -translate-y-1/2 ${
+                  player ? "w-16 min-[380px]:w-20 sm:w-24" : "w-14 min-[380px]:w-16 sm:w-20"
+                }`}
                 style={{ left: `${fieldSlot.x}%`, top: `${fieldSlot.y}%` }}
               >
-                <span
-                  className={`flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 shadow-lg transition min-[380px]:h-12 min-[380px]:w-12 sm:h-14 sm:w-14 ${
-                    player
-                      ? "border-white bg-[#17123f]"
-                      : "border-dashed border-white/70 bg-white/20 text-2xl text-white"
-                  }`}
-                >
-                  {player ? <PlayerPhoto player={player} size="sm" /> : "+"}
-                </span>
-                <span className="mt-0.5 max-w-full truncate rounded-full bg-white/85 px-1.5 py-0.5 text-[8px] font-semibold leading-tight text-[#182c3b] shadow-sm min-[380px]:text-[9px] sm:mt-1 sm:px-2 sm:text-[11px]">
-                  {player ? player.lastName : fieldSlot.role}
-                </span>
+                {player ? (
+                  <span className="relative mx-auto block h-20 w-14 overflow-hidden min-[380px]:h-24 min-[380px]:w-16 sm:h-32 sm:w-20">
+                    <PlayerPhoto player={player} size="md" />
+                    <span className="absolute inset-x-0 bottom-0 px-0.5 pb-1 text-center drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                      <PlayerNameStack player={player} size="xs" />
+                    </span>
+                  </span>
+                ) : (
+                  <span className="flex flex-col items-center">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-white/70 bg-white/20 text-2xl text-white min-[380px]:h-14 min-[380px]:w-14 sm:h-16 sm:w-16">
+                      +
+                    </span>
+                    <span className="mt-0.5 max-w-full truncate rounded-full bg-white/85 px-1.5 py-0.5 text-[8px] font-semibold leading-tight text-[#182c3b] shadow-sm min-[380px]:text-[9px] sm:mt-1 sm:px-2 sm:text-[11px]">
+                      {fieldSlot.role}
+                    </span>
+                  </span>
+                )}
               </button>
             );
           })}
@@ -341,8 +348,8 @@ export function FormationBuilder({ players }: { players: FormationPlayer[] }) {
                   onClick={() => assignPlayer(player.id)}
                   className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-white/8"
                 >
-                  <span className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/15 bg-navy-dark">
-                    <PlayerPhoto player={player} size="sm" />
+                  <span className="h-16 w-12 shrink-0 overflow-hidden bg-navy-dark">
+                    <PlayerPhoto player={player} size="md" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold text-white">{fullName(player)}</span>

@@ -11,7 +11,7 @@ export function PlayerOfTheRound({ player }: { player: FantasyGameweekRow }) {
       prefetch={false}
       className="glass-card flex items-center gap-4 overflow-hidden rounded-xl border-purple/20 p-4 text-white transition"
     >
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-purple/30 bg-navy-dark">
+      <div className="h-[4.5rem] w-12 shrink-0 overflow-hidden rounded-md bg-navy-dark">
         <PlayerPhoto player={player.player} size="sm" />
       </div>
       <div className="min-w-0 flex-1">

@@ -2,14 +2,14 @@ import { HomeStats } from "@/components/home/HomeStats";
 import { NextMatch, NextMatchEmpty } from "@/components/home/NextMatch";
 import { RecentResults } from "@/components/home/RecentResults";
 import { StandingsTable } from "@/components/league/StandingsTable";
-import { PlayerPhoto } from "@/components/players/PlayerCard";
+import { PlayerNameStack, PlayerPhoto } from "@/components/players/PlayerCard";
 import { Container, EmptyState, SectionHeading } from "@/components/ui/Section";
 import { getOurTeam } from "@/lib/context";
 import { getRecentMatches, getUpcomingMatches } from "@/lib/matches";
 import { getCachedPlayers, getCachedStandings } from "@/lib/site-data";
 import { getTopAppearances, getTopAssists, getTopScorers } from "@/lib/stats";
 import Link from "next/link";
-import { playerFullName, positionLabel } from "@/lib/format";
+import { positionLabel } from "@/lib/format";
 
 export const revalidate = 120;
 
@@ -64,21 +64,19 @@ export default async function HomePage() {
                     key={player.id}
                     href={`/igraci/${player.slug}`}
                     prefetch={false}
-                    className="glass-card group flex w-36 shrink-0 flex-col overflow-hidden rounded-2xl sm:w-40"
+                    className="glass-card group w-36 shrink-0 overflow-hidden rounded-2xl sm:w-40"
                   >
-                    <div className="relative aspect-square overflow-hidden bg-navy-dark">
+                    <div className="relative aspect-3/4 overflow-hidden bg-navy-dark">
                       <PlayerPhoto player={player} />
                       {player.jerseyNumber != null && (
-                        <span className="absolute bottom-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-purple/60 font-display text-sm font-bold tabular-nums text-white backdrop-blur-sm">
+                        <span className="absolute right-2 top-2 font-display text-lg font-bold tabular-nums text-white/25">
                           {player.jerseyNumber}
                         </span>
                       )}
-                    </div>
-                    <div className="px-3 py-2.5">
-                      <p className="truncate text-sm font-semibold text-white group-hover:text-purple-light">
-                        {playerFullName(player)}
-                      </p>
-                      <p className="text-[11px] text-white/40">{positionLabel(player.position)}</p>
+                      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-navy-dark via-navy-dark/75 to-transparent px-2.5 pb-2.5 pt-12">
+                        <PlayerNameStack player={player} size="sm" />
+                        <p className="mt-0.5 text-[11px] text-white/45">{positionLabel(player.position)}</p>
+                      </div>
                     </div>
                   </Link>
                 ))}

@@ -27,7 +27,7 @@ export default async function EditPlayerPage({ params, searchParams }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <div className="h-20 w-20 overflow-hidden rounded-lg border border-navy/10">
+        <div className="h-24 w-16 overflow-hidden rounded-lg bg-navy/5">
           <PlayerPhoto player={player} size="sm" />
         </div>
         <div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PlayerPhoto } from "@/components/players/PlayerCard";
+import { PlayerPosterHero } from "@/components/players/PlayerPosterHero";
 import { PlayerProfileTabs } from "@/components/players/PlayerProfileTabs";
 import { Container } from "@/components/ui/Section";
 import {
@@ -15,6 +15,7 @@ import {
 import { orNotFound } from "@/lib/not-found";
 import { getPlayerBySlug, parseFormerClubs } from "@/lib/players";
 import { getOurTeam } from "@/lib/context";
+import { getUpcomingMatches } from "@/lib/matches";
 import { getPlayerAppearances, getPlayerStatistics } from "@/lib/stats";
 import { FantasyBreakdownList } from "@/components/fantasy/FantasyBreakdownList";
 import { FantasyFormChart } from "@/components/fantasy/FantasyFormChart";
@@ -54,11 +55,12 @@ export default async function PlayerProfilePage({ params }: Props) {
     orNotFound(error);
   }
 
-  const [stats, appearances, ourTeam, fantasy] = await Promise.all([
+  const [stats, appearances, ourTeam, fantasy, upcoming] = await Promise.all([
     getPlayerStatistics(player.id),
     getPlayerAppearances(player.id),
     getOurTeam(),
     getPlayerFantasyProfile(player.id),
+    getUpcomingMatches({ limit: 1 }),
   ]);
 
   const formerClubs = parseFormerClubs(player.formerClubs);
@@ -202,45 +204,7 @@ export default async function PlayerProfilePage({ params }: Props) {
 
   return (
     <div>
-      {/* Hero section */}
-      <div className="player-hero-bg">
-        <Container>
-          <div className="relative flex flex-col items-center pb-8 pt-8 sm:flex-row sm:items-end sm:gap-8 sm:pb-12 sm:pt-12">
-            {/* Player photo */}
-            <div className="relative z-10 mb-6 h-72 w-56 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-navy-dark shadow-2xl sm:mb-0 sm:h-80 sm:w-64">
-              <PlayerPhoto player={player} size="lg" />
-            </div>
-
-            {/* Player info overlay */}
-            <div className="relative z-10 flex-1 text-center sm:text-left">
-              {player.jerseyNumber != null && (
-                <p className="font-display text-6xl font-bold tabular-nums text-white/20 sm:text-8xl">
-                  {player.jerseyNumber}
-                </p>
-              )}
-              <h1 className="font-display text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-                {playerFullName(player)}
-              </h1>
-              <p className="mt-2 text-lg text-white/60">
-                {positionLabel(player.position)}
-                {player.birthYear ? ` · ${player.birthYear}` : ""}
-              </p>
-
-              {/* Quick stat badges */}
-              {stats.hasData && (
-                <div className="mt-6 flex flex-wrap justify-center gap-4 sm:justify-start">
-                  <QuickStat value={stats.goals} label="Golovi" />
-                  <QuickStat value={stats.minutes} label="Minute" />
-                  <QuickStat value={stats.appearances} label="Nastupi" />
-                  {fantasy.appearances > 0 && (
-                    <QuickStat value={fantasy.rank != null ? `${fantasy.rank}.` : "—"} label="Rang" />
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </Container>
-      </div>
+      <PlayerPosterHero player={player} stats={stats} nextMatch={upcoming[0] ?? null} />
 
       {/* Content tabs */}
       <Container className="py-8 sm:py-12">
@@ -261,15 +225,6 @@ function StatBox({ label, value }: { label: string; value: number | string }) {
     <div className="glass-card rounded-2xl px-4 py-4">
       <dt className="text-xs uppercase tracking-wide text-white/50">{label}</dt>
       <dd className="mt-1 font-display text-3xl text-white">{value}</dd>
-    </div>
-  );
-}
-
-function QuickStat({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="text-center">
-      <p className="font-display text-2xl font-bold tabular-nums text-white">{value}</p>
-      <p className="text-xs text-white/50">{label}</p>
     </div>
   );
 }

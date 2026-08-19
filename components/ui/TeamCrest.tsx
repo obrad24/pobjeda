@@ -9,11 +9,11 @@ export function TeamCrest({
 }: {
   name: string;
   logo?: string | null;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   preload?: boolean;
 }) {
-  const px = size === "lg" ? 88 : size === "sm" ? 40 : 64;
-  const text = size === "lg" ? "text-xl" : size === "sm" ? "text-xs" : "text-sm";
+  const px = size === "lg" ? 88 : size === "md" ? 64 : size === "sm" ? 40 : 22;
+  const text = size === "lg" ? "text-xl" : size === "sm" ? "text-xs" : size === "xs" ? "text-[8px]" : "text-sm";
 
   if (logo) {
     return (
@@ -23,7 +23,7 @@ export function TeamCrest({
         width={px}
         height={px}
         preload={preload}
-        className="rounded-full border border-white/20 bg-navy-dark/50 object-contain p-0.5"
+        className="object-contain p-0.5"
         unoptimized={logo.startsWith("http")}
       />
     );

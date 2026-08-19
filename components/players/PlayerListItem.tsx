@@ -1,27 +1,28 @@
 import Link from "next/link";
 import type { Player } from "../../generated/prisma";
-import { PlayerPhoto } from "./PlayerCard";
-import { playerFullName, positionLabel } from "@/lib/format";
+import { PlayerNameStack, PlayerPhoto } from "./PlayerCard";
+import { positionLabel } from "@/lib/format";
 
 export function PlayerListItem({ player }: { player: Player }) {
   return (
     <Link href={`/igraci/${player.slug}`} prefetch={false} className="player-list-row group">
-      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-purple/30 bg-navy-dark">
-        <PlayerPhoto player={player} size="sm" />
+      <div className="relative h-24 w-16 shrink-0 overflow-hidden sm:h-28 sm:w-20">
+        <PlayerPhoto player={player} size="md" />
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-lg font-semibold text-white group-hover:text-purple-light">
-          {playerFullName(player)}
-        </p>
-        <p className="text-sm text-white/50">
-          {positionLabel(player.position)}
-          {player.jerseyNumber != null ? ` · #${player.jerseyNumber}` : ""}
-        </p>
+        <PlayerNameStack player={player} size="md" />
+        <p className="mt-0.5 text-sm text-white/50">{positionLabel(player.position)}</p>
       </div>
 
+      {player.jerseyNumber != null ? (
+        <span className="hidden font-display text-3xl font-bold tabular-nums text-white/15 sm:block sm:text-4xl">
+          {player.jerseyNumber}
+        </span>
+      ) : null}
+
       <svg
-        className="h-5 w-5 shrink-0 text-white/30 transition group-hover:text-purple-light group-hover:translate-x-0.5"
+        className="h-5 w-5 shrink-0 text-white/30 transition group-hover:translate-x-0.5 group-hover:text-purple-light"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
