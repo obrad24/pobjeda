@@ -28,6 +28,11 @@ export default async function LoginPage({
         <h1 className="mt-2 text-center font-display text-3xl text-white">Prijava</h1>
         <p className="mt-2 text-center text-sm text-white/50">Samo za unos sastava, statistike i sadržaja kluba.</p>
         {error ? <p className="mt-4 text-center text-sm text-red">Pogrešan email ili lozinka.</p> : null}
+        {process.env.NODE_ENV !== "production" && process.env.ADMIN_EMAIL ? (
+          <p className="mt-4 text-center text-xs text-white/40">
+            Lokalni admin nalog: {process.env.ADMIN_EMAIL} (lozinka iz ADMIN_PASSWORD u .env)
+          </p>
+        ) : null}
         <label className="mt-6 block text-sm text-white/80">
           Email
           <input

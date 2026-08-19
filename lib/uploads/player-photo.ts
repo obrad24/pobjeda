@@ -23,19 +23,19 @@ export function resolvePhotoContentType(file: { type?: string; name?: string }):
   return ext ? (EXT_TYPES[ext] ?? null) : null;
 }
 
-export function isUploadedPhoto(value: FormDataEntryValue | null): value is Blob {
+export function isUploadedPhoto(value: FormDataEntryValue | null): value is File {
   return (
     typeof value === "object" &&
     value !== null &&
     "size" in value &&
     "arrayBuffer" in value &&
-    typeof (value as Blob).size === "number" &&
-    (value as Blob).size > 0 &&
-    typeof (value as Blob).arrayBuffer === "function"
+    typeof (value as File).size === "number" &&
+    (value as File).size > 0 &&
+    typeof (value as File).arrayBuffer === "function"
   );
 }
 
-export async function uploadPlayerPhoto(file: Blob & { name?: string; type?: string }): Promise<string> {
+export async function uploadPlayerPhoto(file: File): Promise<string> {
   const type = resolvePhotoContentType(file);
   if (!type) {
     throw new ValidationError("Dozvoljeni formati fotografije: JPEG, PNG, WebP i GIF");

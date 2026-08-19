@@ -16,8 +16,8 @@ describe("resolvePhotoContentType", () => {
 });
 
 describe("isUploadedPhoto", () => {
-  it("accepts a non-empty Blob", () => {
-    expect(isUploadedPhoto(new Blob(["x"], { type: "image/jpeg" }))).toBe(true);
+  it("accepts a non-empty File", () => {
+    expect(isUploadedPhoto(new File(["x"], "igrac.jpg", { type: "image/jpeg" }))).toBe(true);
   });
 
   it("rejects empty files and plain strings", () => {

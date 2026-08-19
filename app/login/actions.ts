@@ -1,7 +1,6 @@
 "use server";
 
-import { AuthError } from "next-auth";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { signIn, signOut } from "@/auth";
 
 export async function loginAction(formData: FormData) {
@@ -17,10 +16,8 @@ export async function loginAction(formData: FormData) {
       redirectTo: "/admin",
     });
   } catch (error) {
-    if (error instanceof AuthError) {
-      redirect("/login?error=1");
-    }
-    throw error;
+    unstable_rethrow(error);
+    redirect("/login?error=1");
   }
 }
 
