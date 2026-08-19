@@ -1,9 +1,10 @@
 import "dotenv/config";
 import { hash } from "bcryptjs";
-import { MatchStatus, Role } from "../generated/prisma";
+import { MatchStatus, Position, Role } from "../generated/prisma";
 import { prisma } from "../lib/db/prisma";
 import { ensureFantasyRules } from "../lib/fantasy";
 import { sportdcClubLogoUrl } from "../lib/sportdc/teams";
+import { slugifyName } from "../lib/utils/slug";
 
 const LEAGUE_URL =
   process.env.SPORTDC_LEAGUE_URL ??
@@ -38,6 +39,34 @@ const TEAMS: Array<{
   { sportdcTeamId: 7802, name: "FK Borac Ugljevička Obrijež", sportdcName: "Borac", city: "Ugljevička Obrijež" },
   { sportdcTeamId: 7596, name: "FK Glogovac", sportdcName: "Glogovac", city: "Glogovac" },
   { sportdcTeamId: 7580, name: "FK Jedinstvo Donja Čađavica", sportdcName: "Jedinstvo", city: "Donja Čađavica" },
+];
+
+const ROSTER: Array<{ firstName: string; lastName: string; position: Position }> = [
+  { firstName: "Jovica", lastName: "Jovanović", position: Position.GK },
+  { firstName: "Dejan", lastName: "Stanković", position: Position.DF },
+  { firstName: "Miloš", lastName: "Milković", position: Position.DF },
+  { firstName: "Radomir", lastName: "Miličić", position: Position.DF },
+  { firstName: "Damjan", lastName: "Koprivica", position: Position.DF },
+  { firstName: "Bojan", lastName: "Đurić", position: Position.DF },
+  { firstName: "Đorđe", lastName: "Dujković", position: Position.DF },
+  { firstName: "Bogoljub", lastName: "Sando", position: Position.DF },
+  { firstName: "Aleksandar", lastName: "Petrović", position: Position.DF },
+  { firstName: "Miloš", lastName: "Magazin", position: Position.DF },
+  { firstName: "Dimitrije", lastName: "Mrkajić", position: Position.MF },
+  { firstName: "Velibor", lastName: "Vujić", position: Position.MF },
+  { firstName: "Obrad", lastName: "Pejić", position: Position.MF },
+  { firstName: "Željko", lastName: "Maksimović", position: Position.MF },
+  { firstName: "Aranđel", lastName: "Lazarević", position: Position.MF },
+  { firstName: "Stefan", lastName: "Jeftić", position: Position.MF },
+  { firstName: "Nikša", lastName: "Gavranić", position: Position.MF },
+  { firstName: "Đorđe", lastName: "Koprivica", position: Position.MF },
+  { firstName: "Luka", lastName: "Jovanović", position: Position.MF },
+  { firstName: "Milorad", lastName: "Živanović", position: Position.MF },
+  { firstName: "Slaviša", lastName: "Kajtaz", position: Position.FW },
+  { firstName: "Mile", lastName: "Petrović", position: Position.FW },
+  { firstName: "Veljko", lastName: "Grabež", position: Position.FW },
+  { firstName: "Spasoje", lastName: "Petrović", position: Position.FW },
+  { firstName: "Željko", lastName: "Pejić", position: Position.FW },
 ];
 
 async function upsertAdmin() {
@@ -117,6 +146,36 @@ async function main() {
           isOurTeam: team.isOurTeam ?? false,
         },
       }),
+    );
+  }
+
+  const roster = [];
+  for (const player of ROSTER) {
+    const existing = await prisma.player.findFirst({
+      where: {
+        firstName: player.firstName,
+        lastName: player.lastName,
+      },
+    });
+
+    roster.push(
+      existing
+        ? await prisma.player.update({
+            where: { id: existing.id },
+            data: {
+              position: player.position,
+              active: true,
+            },
+          })
+        : await prisma.player.create({
+            data: {
+              firstName: player.firstName,
+              lastName: player.lastName,
+              position: player.position,
+              slug: slugifyName(player.firstName, player.lastName),
+              active: true,
+            },
+          }),
     );
   }
 
@@ -257,7 +316,7 @@ async function main() {
   console.log(`  season: ${season.name}`);
   console.log(`  league: ${league.name} (${league.sportdcLeagueId})`);
   console.log(`  teams: ${teams.length}`);
-  console.log("  players: 0 (add roster in admin)");
+  console.log(`  players: ${roster.length}`);
   console.log(`  our club: ${pobjeda.name} [${pobjeda.sportdcTeamId}]`);
   console.log(`  admin: ${adminEmail}`);
 }
