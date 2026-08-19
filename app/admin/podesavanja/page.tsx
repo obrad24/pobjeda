@@ -55,11 +55,13 @@ export default async function AdminSettingsPage() {
           <dt className="text-xs uppercase tracking-[0.18em] text-muted">Upload fotografija</dt>
           <dd className="mt-1">
             <Flag ok={isBlobConfigured()} />
-            {process.env.BLOB_READ_WRITE_TOKEN
-              ? null
-              : process.env.VERCEL
-                ? <p className="mt-1 text-xs text-muted">Vercel Blob token nije postavljen.</p>
-                : <p className="mt-1 text-xs text-muted">Lokalno se čuva u public/uploads (bez Vercel Blob tokena).</p>}
+            {isBlobConfigured() && process.env.VERCEL ? null : process.env.VERCEL ? (
+              <p className="mt-1 text-xs text-muted">
+                Povežite Blob store sa projektom (Storage → Projects) pa redeployujte.
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-muted">Lokalno se čuva u public/uploads (bez Vercel Blob tokena).</p>
+            )}
           </dd>
         </div>
       </dl>

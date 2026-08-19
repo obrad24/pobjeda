@@ -21,12 +21,23 @@ const TYPE_EXT: Record<string, string> = {
 const MAX_BYTES = 4 * 1024 * 1024;
 const LOCAL_UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "players");
 
-export function isBlobConfigured(env?: { BLOB_READ_WRITE_TOKEN?: string; VERCEL?: string }): boolean {
+type UploadEnv = {
+  BLOB_READ_WRITE_TOKEN?: string;
+  BLOB_STORE_ID?: string;
+  VERCEL?: string;
+};
+
+export function isBlobConfigured(env?: UploadEnv): boolean {
   const source = env ?? {
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    BLOB_STORE_ID: process.env.BLOB_STORE_ID,
     VERCEL: process.env.VERCEL,
   };
-  return Boolean(source.BLOB_READ_WRITE_TOKEN) || !source.VERCEL;
+  return hasBlobAuth(source) || !source.VERCEL;
+}
+
+function hasBlobAuth(env: UploadEnv): boolean {
+  return Boolean(env.BLOB_READ_WRITE_TOKEN || env.BLOB_STORE_ID);
 }
 
 export function resolvePhotoContentType(file: { type?: string; name?: string }): string | null {
@@ -60,15 +71,21 @@ export async function uploadPlayerPhoto(file: File): Promise<string> {
 
   const originalName = file.name?.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "foto";
   const buffer = Buffer.from(await file.arrayBuffer());
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
 
-  if (token) {
+  if (
+    hasBlobAuth({
+      BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+      BLOB_STORE_ID: process.env.BLOB_STORE_ID,
+    })
+  ) {
     try {
       const blob = await put(`players/${Date.now()}-${originalName}`, buffer, {
         access: "public",
-        token,
         addRandomSuffix: true,
         contentType: type,
+        ...(process.env.BLOB_READ_WRITE_TOKEN
+          ? { token: process.env.BLOB_READ_WRITE_TOKEN }
+          : {}),
       });
       return blob.url;
     } catch (error) {
@@ -77,8 +94,8 @@ export async function uploadPlayerPhoto(file: File): Promise<string> {
       }
       const message = error instanceof Error ? error.message : "";
       throw new ValidationError(
-        /token|unauthorized|access|forbidden/i.test(message)
-          ? "Upload nije uspio. Provjerite BLOB_READ_WRITE_TOKEN."
+        /token|unauthorized|access|forbidden|oidc/i.test(message)
+          ? "Upload nije uspio. Povežite Blob store sa Vercel projektom i redeployujte."
           : "Upload fotografije nije uspio. Pokušajte manju sliku (do 4 MB) ili unesite URL.",
       );
     }
@@ -86,7 +103,7 @@ export async function uploadPlayerPhoto(file: File): Promise<string> {
 
   if (process.env.VERCEL) {
     throw new ValidationError(
-      "Upload nije konfigurisan. Unesite URL slike ili postavite BLOB_READ_WRITE_TOKEN.",
+      "Upload nije konfigurisan. U Vercel Storage povežite pobjeda-photos sa ovim projektom (Production) i ponovo deployujte.",
     );
   }
 
