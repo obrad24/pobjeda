@@ -133,7 +133,7 @@ export function PlayerForm({
           <span className="mt-1 block text-xs text-muted">
             {blobConfigured
               ? "JPEG, PNG, WebP ili GIF, do 4 MB. Upload ima prednost nad URL-om."
-              : "BLOB_READ_WRITE_TOKEN nije postavljen — koristite URL polje."}
+              : "Na Vercel-u treba BLOB_READ_WRITE_TOKEN. Do tada unesite URL slike."}
           </span>
         </label>
         {preview ? (

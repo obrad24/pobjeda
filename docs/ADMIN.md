@@ -54,4 +54,4 @@ Prvi korisnik: seed iz `ADMIN_EMAIL` / `ADMIN_PASSWORD` (samo development). Prod
 
 ## Upload fotografija
 
-`Player.image` je URL. Upload ide na Vercel Blob (`BLOB_READ_WRITE_TOKEN`): JPEG/PNG/WebP/GIF, max 4 MB. Bez tokena ostaje ručni URL. Lokalni disk na Vercel-u nije trajan.
+`Player.image` je URL. Lokalno se fajl snima u `public/uploads/players`. U produkciji upload ide na Vercel Blob (`BLOB_READ_WRITE_TOKEN`): JPEG/PNG/WebP/GIF, max 4 MB. Bez tokena na Vercel-u ostaje ručni URL.

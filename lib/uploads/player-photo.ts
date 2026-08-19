@@ -1,3 +1,6 @@
+import { randomBytes } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { put } from "@vercel/blob";
 import { ValidationError } from "../errors";
 
@@ -9,10 +12,19 @@ const EXT_TYPES: Record<string, string> = {
   webp: "image/webp",
   gif: "image/gif",
 };
+const TYPE_EXT: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+};
 const MAX_BYTES = 4 * 1024 * 1024;
+const LOCAL_UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "players");
 
-export function isBlobConfigured(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+export function isBlobConfigured(
+  env: { BLOB_READ_WRITE_TOKEN?: string; VERCEL?: string } = process.env,
+): boolean {
+  return Boolean(env.BLOB_READ_WRITE_TOKEN) || !env.VERCEL;
 }
 
 export function resolvePhotoContentType(file: { type?: string; name?: string }): string | null {
@@ -44,33 +56,41 @@ export async function uploadPlayerPhoto(file: File): Promise<string> {
     throw new ValidationError("Fotografija smije biti najviše 4 MB");
   }
 
+  const originalName = file.name?.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "foto";
+  const buffer = Buffer.from(await file.arrayBuffer());
   const token = process.env.BLOB_READ_WRITE_TOKEN;
-  if (!token) {
+
+  if (token) {
+    try {
+      const blob = await put(`players/${Date.now()}-${originalName}`, buffer, {
+        access: "public",
+        token,
+        addRandomSuffix: true,
+        contentType: type,
+      });
+      return blob.url;
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : "";
+      throw new ValidationError(
+        /token|unauthorized|access|forbidden/i.test(message)
+          ? "Upload nije uspio. Provjerite BLOB_READ_WRITE_TOKEN."
+          : "Upload fotografije nije uspio. Pokušajte manju sliku (do 4 MB) ili unesite URL.",
+      );
+    }
+  }
+
+  if (process.env.VERCEL) {
     throw new ValidationError(
       "Upload nije konfigurisan. Unesite URL slike ili postavite BLOB_READ_WRITE_TOKEN.",
     );
   }
 
-  const originalName = file.name?.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "foto";
-  const buffer = Buffer.from(await file.arrayBuffer());
-
-  try {
-    const blob = await put(`players/${Date.now()}-${originalName}`, buffer, {
-      access: "public",
-      token,
-      addRandomSuffix: true,
-      contentType: type,
-    });
-    return blob.url;
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      throw error;
-    }
-    const message = error instanceof Error ? error.message : "";
-    throw new ValidationError(
-      /token|unauthorized|access|forbidden/i.test(message)
-        ? "Upload nije uspio. Provjerite BLOB_READ_WRITE_TOKEN."
-        : "Upload fotografije nije uspio. Pokušajte manju sliku (do 4 MB) ili unesite URL.",
-    );
-  }
+  await mkdir(LOCAL_UPLOAD_DIR, { recursive: true });
+  const ext = TYPE_EXT[type] ?? ".jpg";
+  const filename = `${Date.now()}-${randomBytes(4).toString("hex")}${ext}`;
+  await writeFile(path.join(LOCAL_UPLOAD_DIR, filename), buffer);
+  return `/uploads/players/${filename}`;
 }

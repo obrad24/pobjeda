@@ -17,7 +17,11 @@ export const authConfig = {
   },
   logger: {
     error(error) {
-      if (error.name === "JWTSessionError" || error.name === "SessionTokenError") {
+      if (
+        error.name === "JWTSessionError" ||
+        error.name === "SessionTokenError" ||
+        error.name === "CredentialsSignin"
+      ) {
         return;
       }
       console.error(error);

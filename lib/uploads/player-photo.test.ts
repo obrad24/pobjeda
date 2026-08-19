@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isUploadedPhoto, resolvePhotoContentType } from "./player-photo";
+import { isBlobConfigured, isUploadedPhoto, resolvePhotoContentType } from "./player-photo";
 
 describe("resolvePhotoContentType", () => {
   it("keeps an allowed MIME type", () => {
@@ -12,6 +12,17 @@ describe("resolvePhotoContentType", () => {
 
   it("rejects unknown types", () => {
     expect(resolvePhotoContentType({ type: "application/pdf", name: "x.pdf" })).toBeNull();
+  });
+});
+
+describe("isBlobConfigured", () => {
+  it("allows local disk upload off Vercel", () => {
+    expect(isBlobConfigured({})).toBe(true);
+  });
+
+  it("requires a blob token on Vercel", () => {
+    expect(isBlobConfigured({ VERCEL: "1" })).toBe(false);
+    expect(isBlobConfigured({ VERCEL: "1", BLOB_READ_WRITE_TOKEN: "token" })).toBe(true);
   });
 });
 
