@@ -80,6 +80,12 @@ async function upsertAdmin() {
     create: { email, passwordHash, role: Role.ADMIN },
   });
 
+  if (email !== "admin@pobjeda.local") {
+    await prisma.user.deleteMany({
+      where: { email: "admin@pobjeda.local" },
+    });
+  }
+
   return email;
 }
 
