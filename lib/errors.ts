@@ -30,6 +30,11 @@ export class NotFoundError extends AppError {
 export function publicErrorMessage(error: Error): string {
   const message = error.message?.trim() ?? "";
   if (
+    /minified React error|#441|react\.dev\/errors\/441|Server Components render/i.test(message)
+  ) {
+    return "Čuvanje nije uspjelo. Ako dodajete fotografiju, koristite JPEG, PNG, WebP ili GIF do 4 MB.";
+  }
+  if (
     !message ||
     message.startsWith("{clientVersion") ||
     message === "[object Object]" ||
@@ -40,4 +45,14 @@ export function publicErrorMessage(error: Error): string {
     return "Veza sa bazom nije uspjela. Sačekajte par sekundi i pokušajte ponovo.";
   }
   return message;
+}
+
+export function actionFailureMessage(error: unknown, fallback: string): string {
+  if (error instanceof AppError) {
+    return error.message;
+  }
+  if (error instanceof Error && error.name === "ValidationError" && error.message.trim()) {
+    return error.message;
+  }
+  return fallback;
 }

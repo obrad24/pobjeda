@@ -27,12 +27,18 @@ export function PlayerForm({
   };
 }) {
   const [preview, setPreview] = useState<string | null>(defaults?.image ?? null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const initialClubs = parseFormerClubs(defaults?.formerClubs);
   const [clubs, setClubs] = useState<string[]>(initialClubs.length > 0 ? initialClubs : [""]);
 
   return (
-    <form action={action} className="max-w-xl space-y-4 rounded-xl border border-navy/10 bg-white p-6">
+    <form
+      action={action}
+      encType="multipart/form-data"
+      className="max-w-xl space-y-4 rounded-xl border border-navy/10 bg-white p-6"
+    >
       {error ? <p className="text-sm text-red">{error}</p> : null}
+      {photoError ? <p className="text-sm text-red">{photoError}</p> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="text-sm">
           Ime
@@ -110,9 +116,18 @@ export function PlayerForm({
             className="mt-1 w-full text-sm"
             onChange={(event) => {
               const file = event.target.files?.[0];
-              if (file) {
-                setPreview(URL.createObjectURL(file));
+              if (!file) {
+                setPhotoError(null);
+                return;
               }
+              if (file.size > 4 * 1024 * 1024) {
+                event.target.value = "";
+                setPhotoError("Fotografija smije biti najviše 4 MB");
+                setPreview(defaults?.image ?? null);
+                return;
+              }
+              setPhotoError(null);
+              setPreview(URL.createObjectURL(file));
             }}
           />
           <span className="mt-1 block text-xs text-muted">

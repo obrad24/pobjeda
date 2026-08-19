@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { publicErrorMessage } from "./errors";
+import { publicErrorMessage, actionFailureMessage, ValidationError } from "./errors";
 
 describe("publicErrorMessage", () => {
   it("hides database connectivity failures", () => {
@@ -11,5 +11,19 @@ describe("publicErrorMessage", () => {
 
   it("keeps validation messages", () => {
     expect(publicErrorMessage(new Error("Broj 7 je već zauzet"))).toBe("Broj 7 je već zauzet");
+  });
+
+  it("explains minified React server-render errors", () => {
+    expect(publicErrorMessage(new Error("Minified React error #441; visit https://react.dev/errors/441"))).toMatch(
+      /fotografiju/i,
+    );
+  });
+});
+
+describe("actionFailureMessage", () => {
+  it("prefers ValidationError text", () => {
+    expect(actionFailureMessage(new ValidationError("Dozvoljeni formati fotografije: JPEG"), "fallback")).toBe(
+      "Dozvoljeni formati fotografije: JPEG",
+    );
   });
 });

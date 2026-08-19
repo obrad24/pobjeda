@@ -2,12 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { CACHE_TAGS, revalidatePublic } from "@/lib/query-cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { withError, withToast } from "@/lib/admin/paths";
-import { ValidationError } from "@/lib/errors";
+import { actionFailureMessage, ValidationError } from "@/lib/errors";
 import { createPlayer, deactivatePlayer, deletePlayer, updatePlayer } from "@/lib/players";
-import { uploadPlayerPhoto } from "@/lib/uploads/player-photo";
+import { isUploadedPhoto, uploadPlayerPhoto } from "@/lib/uploads/player-photo";
 import type { CreatePlayerInput, UpdatePlayerInput } from "@/lib/validation/player";
 
 function optionalText(value: FormDataEntryValue | null): string | null {
@@ -23,7 +23,7 @@ function optionalInt(value: FormDataEntryValue | null): number | null {
 
 async function imageFromForm(formData: FormData): Promise<string | null> {
   const file = formData.get("photo");
-  if (file instanceof File && file.size > 0) {
+  if (isUploadedPhoto(file)) {
     return uploadPlayerPhoto(file);
   }
   return optionalText(formData.get("image"));
@@ -64,10 +64,14 @@ export async function createPlayerAction(formData: FormData) {
     const player = await createPlayer(playerFromForm(formData, image));
     revalidatePlayers(player.slug);
   } catch (error) {
-    if (error instanceof ValidationError) {
-      redirect(withError("/admin/igraci/novi", error.message));
-    }
-    throw error;
+    unstable_rethrow(error);
+    console.error("createPlayerAction", error);
+    redirect(
+      withError(
+        "/admin/igraci/novi",
+        actionFailureMessage(error, "Čuvanje igrača nije uspjelo. Ako dodajete sliku, koristite JPEG/PNG/WebP/GIF do 4 MB."),
+      ),
+    );
   }
   redirect(withToast("/admin/igraci", "Igrač je dodat"));
 }
@@ -80,10 +84,14 @@ export async function updatePlayerAction(playerId: string, slug: string, formDat
     await updatePlayer(playerId, data);
     revalidatePlayers(slug);
   } catch (error) {
-    if (error instanceof ValidationError) {
-      redirect(withError(`/admin/igraci/${playerId}`, error.message));
-    }
-    throw error;
+    unstable_rethrow(error);
+    console.error("updatePlayerAction", error);
+    redirect(
+      withError(
+        `/admin/igraci/${playerId}`,
+        actionFailureMessage(error, "Čuvanje igrača nije uspjelo. Ako dodajete sliku, koristite JPEG/PNG/WebP/GIF do 4 MB."),
+      ),
+    );
   }
   redirect(withToast("/admin/igraci", "Igrač je sačuvan"));
 }

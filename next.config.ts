@@ -6,11 +6,21 @@ const nextConfig: NextConfig = {
     "@prisma/adapter-pg",
     "pg",
   ],
+  experimental: {
+    // Default 1 MB; player photos are allowed up to 4 MB plus multipart overhead.
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
+  },
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "*.public.blob.vercel-storage.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.blob.vercel-storage.com",
       },
       {
         protocol: "https",
