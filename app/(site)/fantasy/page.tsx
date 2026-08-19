@@ -73,128 +73,138 @@ export default async function FantasyPage({
   const seasonAverage = totalAppearances > 0 ? Math.round((totalPoints / totalAppearances) * 10) / 10 : 0;
 
   return (
-    <div>
-      <section className="hero-panel">
-        <Container className="py-12 sm:py-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold">Fantasy Pobjeda</p>
-          <h1 className="mt-3 max-w-3xl font-display text-4xl text-white sm:text-5xl">FANTASY POBJEDA</h1>
-          <p className="mt-4 max-w-2xl text-white/80">
-            Prati učinak igrača i osvajaj bodove zajedno sa svojim omiljenim igračima.
-          </p>
-          <p className="mt-6 text-sm text-gold">Sezona {seasonLabel(season.name)}</p>
-        </Container>
-      </section>
+    <Container className="py-6 sm:py-8">
+      {/* Title row */}
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">Fantasy Pobjeda</h1>
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-purple-light">
+          {seasonLabel(season.name)}
+        </span>
+      </div>
 
-      <Container className="py-10 sm:py-14">
-        <form className="mb-8 flex flex-col gap-3 rounded-xl border border-navy/10 bg-white p-4 sm:flex-row sm:flex-wrap sm:items-end">
-          <label className="text-sm">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-muted">Sezona</span>
-            <select name="sezona" defaultValue={season.id} className="rounded border border-navy/20 px-3 py-2 text-sm">
-              {seasons.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {seasonLabel(item.name)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-muted">Kolo</span>
-            <select name="kolo" defaultValue={selectedRound == null ? "sve" : String(selectedRound)} className="rounded border border-navy/20 px-3 py-2 text-sm">
-              <option value="sve">Sva kola</option>
-              {gameweeks.map((round) => (
-                <option key={round} value={round}>
-                  {roundLabel(round)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <input type="hidden" name="sort" value={sort} />
-          <button type="submit" className="rounded-full bg-navy px-5 py-2 text-sm text-gold">
-            Prikaži
-          </button>
-        </form>
+      {/* Compact filter bar */}
+      <form className="mb-4 flex items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-2">
+        <select
+          name="sezona"
+          defaultValue={season.id}
+          className="rounded-lg border-0 bg-transparent px-2 py-1 text-xs text-white/80 focus:ring-1 focus:ring-purple/50"
+        >
+          {seasons.map((item) => (
+            <option key={item.id} value={item.id} className="bg-[#0f0a2e]">
+              {seasonLabel(item.name)}
+            </option>
+          ))}
+        </select>
+        <span className="text-white/20">|</span>
+        <select
+          name="kolo"
+          defaultValue={selectedRound == null ? "sve" : String(selectedRound)}
+          className="rounded-lg border-0 bg-transparent px-2 py-1 text-xs text-white/80 focus:ring-1 focus:ring-purple/50"
+        >
+          <option value="sve" className="bg-[#0f0a2e]">Sva kola</option>
+          {gameweeks.map((round) => (
+            <option key={round} value={round} className="bg-[#0f0a2e]">
+              {roundLabel(round)}
+            </option>
+          ))}
+        </select>
+        <input type="hidden" name="sort" value={sort} />
+        <button type="submit" className="ml-auto rounded-full bg-purple/20 px-4 py-1 text-xs font-semibold text-purple-light transition hover:bg-purple/30">
+          Prikaži
+        </button>
+      </form>
 
-        {leaderboard.length === 0 ? (
-          <EmptyState
-            title="Fantasy tabela će biti dostupna nakon prvih unesenih sastava"
-            body="Bodovi se računaju automatski iz statistike utakmice. Admin ne unosi fantasy broj ručno."
-          />
-        ) : (
-          <div className="space-y-10">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <StatTile label="Sezona" value={seasonLabel(season.name)} />
-              <StatTile label="Ukupni bodovi" value={String(totalPoints)} />
-              <StatTile label="Prosjek po utakmici" value={seasonAverage.toFixed(1)} />
+      {leaderboard.length === 0 ? (
+        <EmptyState
+          title="Fantasy tabela će biti dostupna nakon prvih unesenih sastava"
+          body="Bodovi se računaju automatski iz statistike utakmice."
+        />
+      ) : (
+        <div className="space-y-4">
+          {/* Compact stats strip */}
+          <div className="flex items-center gap-4 rounded-xl border border-white/8 bg-white/4 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/50">Ukupno</span>
+              <span className="font-display text-lg font-bold tabular-nums text-white">{totalPoints}</span>
             </div>
+            <span className="text-white/10">·</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/50">Prosjek</span>
+              <span className="font-display text-lg font-bold tabular-nums text-white">{seasonAverage.toFixed(1)}</span>
+            </div>
+            <span className="text-white/10">·</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/50">Igrača</span>
+              <span className="font-display text-lg font-bold tabular-nums text-white">{leaderboard.length}</span>
+            </div>
+          </div>
 
-            {playerOfTheRound ? <PlayerOfTheRound player={playerOfTheRound} /> : null}
-
-            <section>
-              <h2 className="mb-4 font-display text-2xl text-navy">Najbolji igrači</h2>
-              <div className="grid gap-3 sm:grid-cols-3">
+          {/* Player of the round + Top 3 side by side */}
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+            {playerOfTheRound && <PlayerOfTheRound player={playerOfTheRound} />}
+            {leaderboard.length >= 3 && (
+              <div className="glass-card overflow-hidden rounded-xl">
                 {leaderboard.slice(0, 3).map((row) => (
                   <Link
                     key={row.playerId}
                     href={`/igraci/${row.player.slug}`}
-                    className="rounded-xl border border-navy/10 bg-white p-4 hover:border-gold"
+                    className="flex items-center justify-between gap-3 border-b border-white/5 px-4 py-3 transition last:border-0 hover:bg-purple/5"
                   >
-                    <p className="text-xs uppercase tracking-wide text-gold">{row.rank}. mjesto</p>
-                    <p className="mt-1 font-display text-xl text-navy">{playerFullName(row.player)}</p>
-                    <p className="text-sm text-muted">{fantasyPositionLabel(row.position)}</p>
-                    <p className="mt-3 font-display text-3xl tabular-nums text-gold">{row.points}</p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple/15 font-display text-sm font-bold text-purple-light">
+                        {row.rank}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-white">{playerFullName(row.player)}</p>
+                        <p className="text-[11px] text-white/40">{fantasyPositionLabel(row.position)}</p>
+                      </div>
+                    </div>
+                    <span className="font-display text-xl font-bold tabular-nums text-purple-light">{row.points}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Last round */}
+          {lastRound.length > 0 && gameweekRound != null && (
+            <section>
+              <h2 className="mb-2 text-sm font-semibold text-white/60">{roundLabel(gameweekRound)}</h2>
+              <div className="glass-card overflow-hidden rounded-xl">
+                {lastRound.map((row) => (
+                  <Link
+                    key={row.playerId}
+                    href={`/igraci/${row.player.slug}`}
+                    className="flex items-center justify-between gap-3 border-b border-white/5 px-4 py-2.5 transition last:border-0 hover:bg-purple/5"
+                  >
+                    <span className="min-w-0">
+                      <span className="text-sm font-medium text-white">{playerFullName(row.player)}</span>
+                      <span className="ml-2 text-[11px] text-white/40">{fantasyPositionLabel(row.position)}</span>
+                    </span>
+                    <span className="font-display text-lg tabular-nums text-purple-light">{row.points}</span>
                   </Link>
                 ))}
               </div>
             </section>
+          )}
 
-            {lastRound.length > 0 && gameweekRound != null ? (
-              <section>
-                <h2 className="mb-4 font-display text-2xl text-navy">Posljednje kolo · {roundLabel(gameweekRound)}</h2>
-                <ul className="divide-y divide-navy/10 overflow-hidden rounded-xl border border-navy/10 bg-white">
-                  {lastRound.map((row) => (
-                    <li key={row.playerId}>
-                      <Link
-                        href={`/igraci/${row.player.slug}`}
-                        className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-cream"
-                      >
-                        <span>
-                          <span className="font-medium text-navy">{playerFullName(row.player)}</span>
-                          <span className="ml-2 text-xs text-muted">{fantasyPositionLabel(row.position)}</span>
-                        </span>
-                        <span className="font-display text-xl tabular-nums text-gold">{row.points}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
+          {/* Leaderboard table */}
+          <section>
+            <h2 className="mb-2 text-sm font-semibold text-white/60">Tabela igrača</h2>
+            <FantasyLeaderboard rows={leaderboard} sort={sort} query={query} />
+          </section>
 
-            <section>
-              <h2 className="mb-4 font-display text-2xl text-navy">Fantasy tabela igrača</h2>
-              <FantasyLeaderboard rows={leaderboard} sort={sort} query={query} />
+          {/* Form chart */}
+          {leaderboard[0]?.form.length ? (
+            <section className="glass-card rounded-xl p-4">
+              <p className="mb-3 text-xs text-white/50">
+                {playerFullName(leaderboard[0].player)} — forma
+              </p>
+              <FantasyFormChart values={leaderboard[0].form} />
             </section>
-
-            {leaderboard[0]?.form.length ? (
-              <section>
-                <h2 className="mb-4 font-display text-2xl text-navy">Forma vodećeg</h2>
-                <div className="rounded-xl border border-navy/10 bg-white p-5">
-                  <p className="mb-4 text-sm text-muted">{playerFullName(leaderboard[0].player)} — posljednja kola</p>
-                  <FantasyFormChart values={leaderboard[0].form} />
-                </div>
-              </section>
-            ) : null}
-          </div>
-        )}
-      </Container>
-    </div>
-  );
-}
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-navy/10 bg-white px-4 py-4">
-      <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 font-display text-2xl text-navy">{value}</p>
-    </div>
+          ) : null}
+        </div>
+      )}
+    </Container>
   );
 }

@@ -40,7 +40,7 @@ new PrismaClient({
 })
 ```
 
-`runtimeConnectionString` skida `channel_binding=require` (može da zaglavi TLS sa `pg`) i ostavlja `sslmode=require`. Node preferira IPv4 (`dns.setDefaultResultOrder("ipv4first")`) jer IPv6 ka Neon-u često padne na `ETIMEDOUT`. Privremeni timeout se ponavlja do 3 puta.
+`runtimeConnectionString` skida `channel_binding=require` (može da zaglavi TLS sa `pg`) i postavlja `sslmode=verify-full` (pg trenutno tretira `require` kao alias i upozorava). Node preferira IPv4 (`dns.setDefaultResultOrder("ipv4first")`) jer IPv6 ka Neon-u često padne na `ETIMEDOUT`. Privremeni timeout se ponavlja do 3 puta.
 
 Klijent se generiše u `generated/prisma` (`postinstall` / `npm run db:generate`). Folder nije u gitu.
 

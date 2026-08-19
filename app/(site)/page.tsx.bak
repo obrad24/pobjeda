@@ -2,14 +2,12 @@ import { HomeStats } from "@/components/home/HomeStats";
 import { NextMatch, NextMatchEmpty } from "@/components/home/NextMatch";
 import { RecentResults } from "@/components/home/RecentResults";
 import { StandingsTable } from "@/components/league/StandingsTable";
-import { PlayerPhoto } from "@/components/players/PlayerCard";
+import { PlayerCard } from "@/components/players/PlayerCard";
 import { Container, EmptyState, SectionHeading } from "@/components/ui/Section";
 import { getOurTeam } from "@/lib/context";
 import { getRecentMatches, getUpcomingMatches } from "@/lib/matches";
 import { getCachedPlayers, getCachedStandings } from "@/lib/site-data";
 import { getTopAppearances, getTopAssists, getTopScorers } from "@/lib/stats";
-import Link from "next/link";
-import { playerFullName, positionLabel } from "@/lib/format";
 
 export const revalidate = 120;
 
@@ -31,8 +29,8 @@ export default async function HomePage() {
     <>
       {nextMatch ? <NextMatch match={nextMatch} /> : <NextMatchEmpty />}
 
-      <Container className="space-y-8 py-7 sm:space-y-10 sm:py-10">
-        <section className="[&>div:first-child]:mb-3">
+      <Container className="space-y-16 py-12 sm:py-16">
+        <section>
           <SectionHeading title="Posljednja 3 meča" href="/rezultati" actionLabel="Svi rezultati" />
           {recent.length === 0 ? (
             <EmptyState
@@ -44,12 +42,12 @@ export default async function HomePage() {
           )}
         </section>
 
-        <section className="[&>div:first-child]:mb-3">
+        <section>
           <SectionHeading title="Statistika igrača" href="/statistika" />
           <HomeStats scorers={scorers} assists={assists} appearances={appearances} />
         </section>
 
-        <section className="[&>div:first-child]:mb-3">
+        <section>
           <SectionHeading title="Sastav" href="/igraci" actionLabel="Svi igrači" />
           {players.length === 0 ? (
             <EmptyState
@@ -57,37 +55,15 @@ export default async function HomePage() {
               body="Kartice igrača će stajati ovdje nakon što ih klub doda u adminu."
             />
           ) : (
-            <div className="-mx-4 sm:-mx-6">
-              <div className="flex gap-3 overflow-x-auto px-4 pb-1 sm:px-6">
-                {players.slice(0, 10).map((player) => (
-                  <Link
-                    key={player.id}
-                    href={`/igraci/${player.slug}`}
-                    prefetch={false}
-                    className="glass-card group flex w-36 shrink-0 flex-col overflow-hidden rounded-2xl sm:w-40"
-                  >
-                    <div className="relative aspect-square overflow-hidden bg-navy-dark">
-                      <PlayerPhoto player={player} />
-                      {player.jerseyNumber != null && (
-                        <span className="absolute bottom-2 left-2 flex h-7 w-7 items-center justify-center rounded-full bg-purple/60 font-display text-sm font-bold tabular-nums text-white backdrop-blur-sm">
-                          {player.jerseyNumber}
-                        </span>
-                      )}
-                    </div>
-                    <div className="px-3 py-2.5">
-                      <p className="truncate text-sm font-semibold text-white group-hover:text-purple-light">
-                        {playerFullName(player)}
-                      </p>
-                      <p className="text-[11px] text-white/40">{positionLabel(player.position)}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {players.map((player) => (
+                <PlayerCard key={player.id} player={player} />
+              ))}
             </div>
           )}
         </section>
 
-        <section className="[&>div:first-child]:mb-3">
+        <section>
           <SectionHeading title="Tabela lige" href="/liga" actionLabel="Puna tabela" />
           {standings.rows.length === 0 ? (
             <EmptyState title="Tabela nije dostupna" body="Tabela se učitava nakon sinhronizacije sa SportDC-om." />

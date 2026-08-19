@@ -29,13 +29,17 @@ export const metadata: Metadata = {
     template: "%s · FK Pobjeda Triješnica",
   },
   description,
-  icons: { icon: "/logo.svg" },
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     title: "FK Pobjeda Triješnica",
     description,
     locale: "sr_Latn",
     type: "website",
     siteName: "FK Pobjeda Triješnica",
+    images: [{ url: "/logo.png", width: 181, height: 150, alt: "FK Pobjeda Triješnica — 50 godina" }],
   },
   twitter: {
     card: "summary",
@@ -51,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${display.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full bg-cream font-sans text-navy">
+      <body suppressHydrationWarning className="min-h-full font-sans text-white">
         {children}
       </body>
     </html>

@@ -7,8 +7,11 @@ export function runtimeConnectionString(raw: string): string {
   // node-pg + Neon pooler: channel binding can stall the TLS handshake from some networks.
   url.searchParams.delete("channel_binding");
 
-  if (!url.searchParams.get("sslmode")) {
-    url.searchParams.set("sslmode", "require");
+  // pg currently aliases require/prefer/verify-ca to verify-full and warns.
+  // Pin verify-full so the handshake stays the same after pg v9.
+  const sslmode = url.searchParams.get("sslmode");
+  if (!sslmode || sslmode === "require" || sslmode === "prefer" || sslmode === "verify-ca") {
+    url.searchParams.set("sslmode", "verify-full");
   }
 
   if (!url.searchParams.get("connect_timeout")) {

@@ -14,7 +14,7 @@ import {
   parseStandings,
   teamsByTableIndex,
 } from "./parser";
-import { displayNameForTeam, isOurClub } from "./teams";
+import { displayNameForTeam, isOurClub, sportdcClubLogoUrl } from "./teams";
 import type {
   SportDcLeagueMeta,
   SportDcMatch,
@@ -132,6 +132,7 @@ export async function syncTeams(teams: SportDcTeam[]) {
       update: {
         sportdcName: team.sportdcName,
         city: team.city,
+        logo: sportdcClubLogoUrl(team.sportdcTeamId),
         isOurTeam: ours,
         ...(ours ? { name: displayNameForTeam(team) } : {}),
       },
@@ -139,6 +140,7 @@ export async function syncTeams(teams: SportDcTeam[]) {
         sportdcTeamId: team.sportdcTeamId,
         sportdcName: team.sportdcName,
         city: team.city,
+        logo: sportdcClubLogoUrl(team.sportdcTeamId),
         isOurTeam: ours,
         name: displayNameForTeam(team),
       },

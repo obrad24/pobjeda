@@ -3,14 +3,17 @@ import type { MatchListItem } from "./matches";
 
 const SARAJEVO = "Europe/Sarajevo";
 
-export function formatMatchDate(date: Date): string {
+export function formatMatchDate(date: Date | string | null | undefined): string {
+  if (!date) return "—";
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "—";
   return new Intl.DateTimeFormat("sr-Latn-BA", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
     timeZone: SARAJEVO,
-  }).format(date);
+  }).format(d);
 }
 
 export function formatDateTime(date: Date | null | undefined): string {
@@ -29,26 +32,32 @@ export function formatDateTime(date: Date | null | undefined): string {
   }).format(date);
 }
 
-export function formatShortDate(date: Date): string {
+export function formatShortDate(date: Date | string | null | undefined): string {
+  if (!date) return "—";
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "—";
   return new Intl.DateTimeFormat("sr-Latn-BA", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     timeZone: SARAJEVO,
-  }).format(date);
+  }).format(d);
 }
 
-export function formatMatchTime(date: Date, time?: string | null): string {
+export function formatMatchTime(date: Date | string | null | undefined, time?: string | null): string {
   if (time) {
     return time;
   }
+  if (!date) return "—";
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "—";
 
   return new Intl.DateTimeFormat("sr-Latn-BA", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
     timeZone: SARAJEVO,
-  }).format(date);
+  }).format(d);
 }
 
 export const POSITIONS = [

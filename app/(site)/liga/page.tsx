@@ -23,7 +23,7 @@ export default async function LeaguePage() {
 
   return (
     <Container className="py-10 sm:py-14">
-      <PageHeader eyebrow={league.season.name} title={league.name} description="Podaci tabele dolaze iz Neon baze, sinhronizovane sa SportDC-om." />
+      <PageHeader eyebrow={league.season.name} title={league.name} />
 
       <section className="mb-12">
         <SectionHeading title="Tabela" />

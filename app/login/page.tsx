@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { ClubLogo } from "@/components/ui/ClubLogo";
 import { loginAction } from "./actions";
 
 export const metadata: Metadata = { title: "Prijava" };
@@ -18,33 +19,36 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex min-h-full items-center justify-center px-4 py-16">
-      <form action={loginAction} className="w-full max-w-md rounded-xl border border-navy/10 bg-white p-8 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-dark">Admin</p>
-        <h1 className="mt-2 font-display text-3xl text-navy">Prijava</h1>
-        <p className="mt-2 text-sm text-muted">Samo za unos sastava, statistike i sadržaja kluba. Nema javne registracije.</p>
-        {error ? <p className="mt-4 text-sm text-red">Pogrešan email ili lozinka.</p> : null}
-        <label className="mt-6 block text-sm text-navy">
+    <div className="ambient-bg flex min-h-full items-center justify-center px-4 py-16">
+      <form action={loginAction} className="glass-card w-full max-w-md rounded-2xl p-8">
+        <div className="flex justify-center">
+          <ClubLogo size="md" />
+        </div>
+        <p className="mt-4 text-center text-xs font-semibold uppercase tracking-[0.22em] text-gold">Admin</p>
+        <h1 className="mt-2 text-center font-display text-3xl text-white">Prijava</h1>
+        <p className="mt-2 text-center text-sm text-white/50">Samo za unos sastava, statistike i sadržaja kluba.</p>
+        {error ? <p className="mt-4 text-center text-sm text-red">Pogrešan email ili lozinka.</p> : null}
+        <label className="mt-6 block text-sm text-white/80">
           Email
           <input
             name="email"
             type="email"
             required
             autoComplete="username"
-            className="mt-1 w-full rounded-md border border-navy/20 px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-white placeholder:text-white/30 focus:border-gold/40 focus:outline-none"
           />
         </label>
-        <label className="mt-4 block text-sm text-navy">
+        <label className="mt-4 block text-sm text-white/80">
           Lozinka
           <input
             name="password"
             type="password"
             required
             autoComplete="current-password"
-            className="mt-1 w-full rounded-md border border-navy/20 px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-white placeholder:text-white/30 focus:border-gold/40 focus:outline-none"
           />
         </label>
-        <button type="submit" className="mt-6 w-full rounded-full bg-navy py-2.5 text-sm text-gold hover:bg-navy-dark">
+        <button type="submit" className="glass-pill mt-6 w-full py-2.5 text-sm font-semibold text-gold transition hover:bg-white/10">
           Prijavi se
         </button>
       </form>

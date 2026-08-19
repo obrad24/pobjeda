@@ -17,13 +17,13 @@ export function FantasyFormChart({
         const height = Math.max(8, Math.round((Math.abs(value) / max) * 96));
         return (
           <div key={`${labels?.[index] ?? index}-${value}`} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-            <span className="font-display text-sm tabular-nums text-navy">{value}</span>
+            <span className="font-display text-sm tabular-nums text-white">{value}</span>
             <div
               className={`w-full max-w-10 rounded-t ${value < 0 ? "bg-red" : "bg-gold"}`}
               style={{ height }}
               title={labels?.[index] ? `${labels[index]}: ${value}` : String(value)}
             />
-            {labels?.[index] ? <span className="text-[10px] uppercase tracking-wide text-muted">{labels[index]}</span> : null}
+            {labels?.[index] ? <span className="text-[10px] uppercase tracking-wide text-white/50">{labels[index]}</span> : null}
           </div>
         );
       })}

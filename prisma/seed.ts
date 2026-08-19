@@ -3,6 +3,7 @@ import { hash } from "bcryptjs";
 import { MatchStatus, Role } from "../generated/prisma";
 import { prisma } from "../lib/db/prisma";
 import { ensureFantasyRules } from "../lib/fantasy";
+import { sportdcClubLogoUrl } from "../lib/sportdc/teams";
 
 const LEAGUE_URL =
   process.env.SPORTDC_LEAGUE_URL ??
@@ -104,6 +105,7 @@ async function main() {
           name: team.name,
           sportdcName: team.sportdcName,
           city: team.city,
+          logo: sportdcClubLogoUrl(team.sportdcTeamId),
           isOurTeam: team.isOurTeam ?? false,
         },
         create: {
@@ -111,6 +113,7 @@ async function main() {
           sportdcName: team.sportdcName,
           city: team.city,
           sportdcTeamId: team.sportdcTeamId,
+          logo: sportdcClubLogoUrl(team.sportdcTeamId),
           isOurTeam: team.isOurTeam ?? false,
         },
       }),

@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.public.blob.vercel-storage.com",
       },
+      {
+        protocol: "https",
+        hostname: "sportdc.net",
+        pathname: "/img/club/**",
+      },
     ],
   },
   allowedDevOrigins: ["127.0.0.1"],

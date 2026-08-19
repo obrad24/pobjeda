@@ -40,21 +40,21 @@ export function PlayerCard({ player }: { player: Player }) {
     <Link
       href={`/igraci/${player.slug}`}
       prefetch={false}
-      className="group overflow-hidden rounded-xl border border-navy/15 bg-white shadow-sm transition hover:border-gold hover:shadow-md"
+      className="glass-card group overflow-hidden rounded-2xl transition"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-navy">
+      <div className="relative aspect-[4/5] overflow-hidden bg-navy-dark">
         <PlayerPhoto player={player} />
         {player.jerseyNumber != null ? (
-          <span className="absolute left-3 top-3 font-display text-3xl font-semibold tabular-nums text-gold drop-shadow">
+          <span className="absolute left-3 top-3 font-display text-3xl font-semibold tabular-nums text-purple-light drop-shadow">
             {player.jerseyNumber}
           </span>
         ) : null}
       </div>
       <div className="px-4 py-3">
-        <p className="font-display text-lg leading-tight text-navy group-hover:text-gold-dark">
+        <p className="font-display text-lg leading-tight text-white group-hover:text-purple-light">
           {playerFullName(player)}
         </p>
-        <p className="mt-1 text-sm text-muted">
+        <p className="mt-1 text-sm text-white/50">
           {positionLabel(player.position)}
           {player.birthYear ? ` · ${player.birthYear}` : ""}
         </p>

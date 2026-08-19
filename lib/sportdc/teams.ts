@@ -12,6 +12,10 @@ function normalize(value: string): string {
     .trim();
 }
 
+export function sportdcClubLogoUrl(sportdcTeamId: number): string {
+  return `https://sportdc.net/img/club/${sportdcTeamId}`;
+}
+
 export function isOurClub(team: {
   sportdcTeamId: number;
   sportdcName: string;

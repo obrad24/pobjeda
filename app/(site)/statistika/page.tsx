@@ -27,7 +27,7 @@ export default async function StatisticsPage({
       <PageHeader
         eyebrow="Sezona"
         title="Statistika"
-        description="Agregati se računaju iz sastava, golova i kartona. Kliknite naziv kolone za sortiranje."
+        description="Nastupi, minute, golovi, asistencije i kartoni igrača u sezoni."
       />
       {rows.length === 0 ? (
         <EmptyState

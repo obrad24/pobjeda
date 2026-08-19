@@ -39,7 +39,7 @@ export default async function ResultsPage({
       <PageHeader
         eyebrow="Prva opštinska liga Bijeljina"
         title="Rezultati / raspored"
-        description="Odvojeno naredne i odigrane utakmice. Filtrirajte po kolu. Utakmice FK Pobjeda su označene zlatnom pozadinom."
+        description="Naredne i odigrane utakmice Prve opštinske lige Bijeljina."
       />
       <RoundFilter rounds={rounds} selected={selected} />
 

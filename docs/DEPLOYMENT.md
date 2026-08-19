@@ -7,7 +7,7 @@ Stack: Next.js 16 na Vercel, Neon PostgreSQL, Prisma 7, Vercel Cron, opciono Ver
 1. Napravi projekat na [console.neon.tech](https://console.neon.tech) (region npr. Frankfurt / `eu-central-1`).
 2. Connect → kopiraj **pooled** URL (`-pooler` u hostname-u) kao `DATABASE_URL`.
 3. Connect → kopiraj **direct** URL (bez `-pooler`) kao `DIRECT_URL`.
-4. Oba URL-a trebaju `?sslmode=require`.
+4. Oba URL-a trebaju `?sslmode=verify-full`.
 5. Isti region kao Vercel projekat radi latencije.
 
 Lokalna alternativa bez Neon nalog: `npm run db:start` (embedded PostgreSQL 18 na `127.0.0.1:54329`).

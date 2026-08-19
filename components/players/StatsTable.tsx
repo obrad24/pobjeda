@@ -28,19 +28,19 @@ export function sortPlayerStats(rows: PlayerSeasonStats[], sort: StatSort): Play
 
 export function StatsTable({ rows, sort }: { rows: PlayerSeasonStats[]; sort: StatSort }) {
   return (
-    <div className="table-scroll rounded-xl border border-navy/10 bg-white shadow-sm">
-      <table className="w-full border-collapse text-sm">
-        <thead className="bg-navy text-white">
-          <tr className="text-left">
+    <div className="table-scroll glass-card overflow-hidden rounded-2xl">
+      <table className="w-full border-collapse text-sm text-white/80">
+        <thead>
+          <tr className="border-b border-white/10 text-left text-white/60">
             {STAT_SORTS.map((column) => (
               <th
                 key={column.id}
-                className={`px-3 py-3 font-medium ${column.id === "name" ? "sticky-col bg-navy" : "text-center"}`}
+                className={`px-3 py-3 font-medium ${column.id === "name" ? "sticky-col" : "text-center"}`}
               >
                 <Link
                   href={`/statistika?sort=${column.id}`}
                   prefetch={false}
-                  className={sort === column.id ? "text-gold" : "text-white hover:text-gold-light"}
+                  className={sort === column.id ? "text-gold" : "text-white/60 hover:text-gold-light"}
                 >
                   {column.label}
                 </Link>
@@ -50,9 +50,9 @@ export function StatsTable({ rows, sort }: { rows: PlayerSeasonStats[]; sort: St
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.playerId} className="border-t border-navy/10">
-              <td className="sticky-col bg-white px-3 py-2.5">
-                <Link href={`/igraci/${row.player.slug}`} prefetch={false} className="font-medium text-navy hover:text-gold-dark">
+            <tr key={row.playerId} className="border-t border-white/5">
+              <td className="sticky-col px-3 py-2.5">
+                <Link href={`/igraci/${row.player.slug}`} prefetch={false} className="font-medium text-white hover:text-gold">
                   {playerFullName(row.player)}
                 </Link>
               </td>

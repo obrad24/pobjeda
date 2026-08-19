@@ -46,7 +46,7 @@ export default async function MatchPage({ params }: Props) {
             <MatchLineup match={match} />
           </>
         ) : (
-          <p className="rounded-xl border border-navy/10 bg-white px-4 py-6 text-sm text-muted">
+          <p className="glass-card rounded-2xl px-4 py-6 text-sm text-white/50">
             Za utakmice lige bez učešća FK Pobjeda prikazuju se par, kolo i rezultat sa SportDC-a. Sastav se vodi samo za naše mečeve.
           </p>
         )}

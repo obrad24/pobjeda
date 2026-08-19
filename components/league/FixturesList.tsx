@@ -13,11 +13,11 @@ export function FixturesList({
   empty: string;
 }) {
   if (matches.length === 0) {
-    return <p className="rounded-xl border border-navy/10 bg-white px-4 py-6 text-sm text-muted">{empty}</p>;
+    return <p className="glass-card rounded-2xl px-4 py-6 text-sm text-white/50">{empty}</p>;
   }
 
   return (
-    <ul className="divide-y divide-navy/10 overflow-hidden rounded-xl border border-navy/10 bg-white">
+    <ul className="glass-card divide-y divide-white/5 overflow-hidden rounded-2xl">
       {matches.map((match) => {
         const ours = ourTeamId ? match.homeTeamId === ourTeamId || match.awayTeamId === ourTeamId : false;
         return (
@@ -25,29 +25,29 @@ export function FixturesList({
             <Link
               href={`/utakmice/${match.id}`}
               prefetch={false}
-              className={`grid gap-3 px-4 py-3 transition hover:bg-cream sm:grid-cols-[7.5rem_1fr_auto] sm:items-center ${
-                ours ? "bg-gold/10" : ""
+              className={`grid gap-3 px-4 py-3 transition hover:bg-white/5 sm:grid-cols-[7.5rem_1fr_auto] sm:items-center ${
+                ours ? "bg-gold/5" : ""
               }`}
             >
-              <div className="text-xs text-muted">
+              <div className="text-xs text-white/50">
                 <p>{roundLabel(match.round)}</p>
                 <p>{formatShortDate(match.date)}</p>
                 <p>{formatMatchTime(match.date, match.time)}</p>
               </div>
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <span className="flex items-center justify-end gap-2 text-right">
-                  <span className="truncate font-medium text-navy">{match.homeTeam.sportdcName}</span>
+                  <span className="truncate font-medium text-white">{match.homeTeam.sportdcName}</span>
                   <TeamCrest name={match.homeTeam.name} logo={match.homeTeam.logo} size="sm" />
                 </span>
-                <span className="min-w-[4.5rem] text-center font-display text-lg tabular-nums text-navy">
+                <span className="min-w-[4.5rem] text-center font-display text-lg tabular-nums text-white">
                   {scoreLabel(match)}
                 </span>
                 <span className="flex items-center gap-2">
                   <TeamCrest name={match.awayTeam.name} logo={match.awayTeam.logo} size="sm" />
-                  <span className="truncate font-medium text-navy">{match.awayTeam.sportdcName}</span>
+                  <span className="truncate font-medium text-white">{match.awayTeam.sportdcName}</span>
                 </span>
               </div>
-              <span className="hidden text-xs text-muted sm:block">{match.stadium ?? match.league.name}</span>
+              <span className="hidden text-xs text-white/40 sm:block">{match.stadium ?? match.league.name}</span>
             </Link>
           </li>
         );
@@ -83,10 +83,10 @@ function FilterChip({ href, active, label }: { href: string; active: boolean; la
     <Link
       href={href}
       prefetch={false}
-      className={`shrink-0 rounded-full border px-3 py-1.5 text-sm ${
+      className={`shrink-0 rounded-full border px-3 py-1.5 text-sm transition ${
         active
-          ? "border-gold bg-navy text-gold"
-          : "border-navy/15 bg-white text-navy hover:border-gold"
+          ? "border-gold/40 bg-gold/15 text-gold"
+          : "border-white/10 bg-white/5 text-white/70 hover:border-gold/30 hover:text-gold"
       }`}
     >
       {label}

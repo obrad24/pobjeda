@@ -9,17 +9,19 @@ export function PlayerOfTheRound({ player }: { player: FantasyGameweekRow }) {
     <Link
       href={`/igraci/${player.player.slug}`}
       prefetch={false}
-      className="flex gap-5 overflow-hidden rounded-2xl border border-gold/40 bg-navy p-5 text-white shadow-sm transition hover:border-gold"
+      className="glass-card flex items-center gap-4 overflow-hidden rounded-xl border-purple/20 p-4 text-white transition"
     >
-      <div className="h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-navy-dark sm:h-36 sm:w-28">
-        <PlayerPhoto player={player.player} size="md" />
+      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-purple/30 bg-navy-dark">
+        <PlayerPhoto player={player.player} size="sm" />
       </div>
-      <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Fantasy igrač kola</p>
-        <h2 className="mt-2 font-display text-2xl leading-tight sm:text-3xl">{playerFullName(player.player)}</h2>
-        <p className="mt-1 text-sm text-white/70">{fantasyPositionLabel(player.position)}</p>
-        <p className="mt-4 font-display text-4xl tabular-nums text-gold">{player.points}</p>
-        <p className="text-xs uppercase tracking-[0.18em] text-white/60">bodova</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-purple-light">Igrač kola</p>
+        <h2 className="mt-0.5 truncate font-display text-xl leading-tight">{playerFullName(player.player)}</h2>
+        <p className="text-xs text-white/50">{fantasyPositionLabel(player.position)}</p>
+      </div>
+      <div className="text-right">
+        <p className="font-display text-3xl font-bold tabular-nums text-purple-light">{player.points}</p>
+        <p className="text-[10px] uppercase tracking-[0.15em] text-white/40">bodova</p>
       </div>
     </Link>
   );

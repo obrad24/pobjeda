@@ -23,7 +23,7 @@ export function TeamCrest({
         width={px}
         height={px}
         preload={preload}
-        className="rounded-full border border-gold/40 bg-navy object-cover"
+        className="rounded-full border border-white/20 bg-navy-dark/50 object-contain p-0.5"
         unoptimized={logo.startsWith("http")}
       />
     );
@@ -32,7 +32,7 @@ export function TeamCrest({
   return (
     <span
       aria-hidden
-      className={`inline-flex items-center justify-center rounded-full border-2 border-gold bg-navy font-display font-semibold text-gold ${text}`}
+      className={`inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 font-display font-semibold text-gold ${text}`}
       style={{ width: px, height: px }}
     >
       {teamInitials(name)}

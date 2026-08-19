@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { PlayerCard } from "@/components/players/PlayerCard";
-import { Container, EmptyState, PageHeader } from "@/components/ui/Section";
-import { POSITION_ORDER, positionLabel } from "@/lib/format";
+import { Suspense } from "react";
+import { PlayerListItem } from "@/components/players/PlayerListItem";
+import { PositionFilter } from "@/components/players/PositionFilter";
+import { Container, EmptyState } from "@/components/ui/Section";
 import { getCachedPlayers } from "@/lib/site-data";
+import type { Position } from "../../../generated/prisma";
 
 export const revalidate = 120;
 
@@ -11,39 +13,49 @@ export const metadata: Metadata = {
   description: "Sastav FK Pobjeda Triješnica — igrači, brojevi i pozicije.",
 };
 
-export default async function PlayersPage() {
-  const players = await getCachedPlayers();
+type Props = {
+  searchParams: Promise<{ pos?: string }>;
+};
+
+export default async function PlayersPage({ searchParams }: Props) {
+  const { pos } = await searchParams;
+  const allPlayers = await getCachedPlayers();
+
+  const validPositions = new Set(["GK", "DF", "MF", "FW"]);
+  const filtered =
+    pos && validPositions.has(pos)
+      ? allPlayers.filter((p) =>
+          pos === "FW" ? p.position === "FW" || p.position === "WG" : p.position === (pos as Position),
+        )
+      : allPlayers;
 
   return (
     <Container className="py-10 sm:py-14">
-      <PageHeader
-        eyebrow="Sastav"
-        title="Igrači"
-        description="Aktivni igrači FK Pobjeda Triješnica. Kliknite karticu za profil i sezonsku statistiku."
-      />
-      {players.length === 0 ? (
+      <div className="mb-8">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-purple-light">
+          Sastav
+        </p>
+        <h1 className="font-display text-3xl font-semibold tracking-wide text-white sm:text-4xl">
+          Igrači
+        </h1>
+      </div>
+
+      <div className="mb-6">
+        <Suspense>
+          <PositionFilter />
+        </Suspense>
+      </div>
+
+      {filtered.length === 0 ? (
         <EmptyState
-          title="Sastav se još unosi"
-          body="Igrači će se pojaviti ovdje kada klub unese sastav u admin panelu."
+          title="Nema igrača"
+          body="Nema igrača za odabranu poziciju."
         />
       ) : (
-        <div className="space-y-12">
-          {POSITION_ORDER.map((position) => {
-            const group = players.filter((player) => player.position === position);
-            if (group.length === 0) {
-              return null;
-            }
-            return (
-              <section key={position}>
-                <h2 className="mb-4 font-display text-xl text-navy">{positionLabel(position)}</h2>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                  {group.map((player) => (
-                    <PlayerCard key={player.id} player={player} />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+        <div className="glass-card overflow-hidden rounded-2xl">
+          {filtered.map((player) => (
+            <PlayerListItem key={player.id} player={player} />
+          ))}
         </div>
       )}
     </Container>

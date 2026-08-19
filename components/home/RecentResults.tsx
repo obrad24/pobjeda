@@ -10,9 +10,9 @@ import {
 import { TeamCrest } from "@/components/ui/TeamCrest";
 
 const RESULT_STYLES = {
-  win: "bg-gold text-navy-dark",
-  draw: "bg-navy/15 text-navy",
-  loss: "bg-red text-white",
+  win: "bg-gold/20 text-gold border-gold/30",
+  draw: "bg-white/10 text-white/80 border-white/20",
+  loss: "bg-red/20 text-red border-red/30",
 } as const;
 
 const RESULT_LABEL = {
@@ -42,25 +42,25 @@ export function RecentResults({
             key={match.id}
             href={`/utakmice/${match.id}`}
             prefetch={false}
-            className="rounded-xl border border-navy/10 bg-white p-4 shadow-sm transition hover:border-gold"
+            className="glass-card rounded-2xl p-5 text-white transition"
           >
-            <div className="flex items-center justify-between gap-2 text-xs text-muted">
+            <div className="flex items-center justify-between gap-2 text-xs text-white/50">
               <span>{roundLabel(match.round)}</span>
               <span>{formatShortDate(match.date)}</span>
             </div>
             <div className="mt-3 flex items-center gap-3">
               <TeamCrest name={opponent.name} logo={opponent.logo} size="sm" />
               <div className="min-w-0">
-                <p className="truncate font-display text-lg text-navy">{opponent.sportdcName}</p>
-                <p className="text-xs uppercase tracking-wide text-muted">{home ? "Domaćin" : "Gost"}</p>
+                <p className="truncate font-display text-lg text-white">{opponent.sportdcName}</p>
+                <p className="text-xs uppercase tracking-wide text-white/50">{home ? "Domaćin" : "Gost"}</p>
               </div>
             </div>
             <div className="mt-4 flex items-center justify-between">
-              <p className="font-display text-2xl tabular-nums text-navy">
+              <p className="font-display text-2xl tabular-nums text-white">
                 {ours ?? "-"} : {theirs ?? "-"}
               </p>
               {result ? (
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${RESULT_STYLES[result]}`}>
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${RESULT_STYLES[result]}`}>
                   {RESULT_LABEL[result]}
                 </span>
               ) : null}

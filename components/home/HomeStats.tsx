@@ -41,24 +41,24 @@ function StatList({
   metric: "goals" | "assists" | "appearances";
 }) {
   return (
-    <div className="rounded-xl border border-navy/10 bg-white p-4">
-      <h3 className="font-display text-lg text-navy">{title}</h3>
+    <div className="glass-card rounded-2xl p-5">
+      <h3 className="font-display text-lg text-white">{title}</h3>
       {rows.length === 0 ? (
-        <p className="mt-3 text-sm text-muted">Još nema unosa.</p>
+        <p className="mt-3 text-sm text-white/50">Još nema unosa.</p>
       ) : (
-        <ol className="mt-3 divide-y divide-navy/10">
+        <ol className="mt-3 divide-y divide-white/10">
           {rows.map((row, index) => (
             <li key={row.playerId}>
               <Link
                 href={`/igraci/${row.player.slug}`}
                 prefetch={false}
-                className="flex items-center justify-between gap-3 py-2.5 hover:text-gold-dark"
+                className="flex items-center justify-between gap-3 py-2.5 text-white/80 transition hover:text-purple-light"
               >
                 <span className="min-w-0 truncate">
-                  <span className="mr-2 font-display text-gold">{index + 1}</span>
+                  <span className="mr-2 font-display text-purple-light">{index + 1}</span>
                   {playerFullName(row.player)}
                 </span>
-                <span className="font-display tabular-nums text-navy">{row[metric]}</span>
+                <span className="font-display tabular-nums text-white">{row[metric]}</span>
               </Link>
             </li>
           ))}
