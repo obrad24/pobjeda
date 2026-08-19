@@ -55,9 +55,9 @@ export function PlayerPosterHero({
         </p>
       ) : null}
 
-      <h1 className="pointer-events-none absolute inset-x-0 top-8 text-right z-0 px-5  font-display font-black uppercase italic leading-[0.88] tracking-tight text-white sm:top-[32%] sm:px-8">
-        <span className="block text-[clamp(1.85rem,10vw,4.25rem)]">{player.firstName}</span>
-        <span className="block text-[clamp(2.15rem,14vw,5rem)]">{player.lastName}</span>
+      <h1 className="pointer-events-none absolute inset-x-0 top-4 text-right z-0 px-5  font-display font-black uppercase italic leading-[0.88] tracking-tight text-white sm:top-[32%] sm:px-8">
+        <span className="block text-[clamp(1.5rem,7.5vw,3.5rem)]">{player.firstName}</span>
+        <span className="block text-[clamp(1.7rem,10vw,4.25rem)]">{player.lastName}</span>
       </h1>
 
       <div className="absolute inset-x-0 bottom-0 top-8 z-10 mx-auto w-[min(95%,26rem)] sm:w-[min(70%,28rem)]">
