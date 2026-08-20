@@ -15,13 +15,14 @@ import { getSyncStatus } from "@/lib/sportdc/sync";
 import { getTopScorers } from "@/lib/stats";
 
 export default async function AdminHomePage() {
-  const [players, upcoming, recent, scorers, sync, matchCount, season, ourTeam] = await Promise.all([
+  const [players, upcoming, recent, scorers, sync, matchCount, newShopOrders, season, ourTeam] = await Promise.all([
     getPlayers({ includeInactive: true }),
     getUpcomingMatches({ limit: 1 }),
     getRecentMatches({ limit: 1 }),
     getTopScorers({ limit: 1 }).catch(() => []),
     getSyncStatus(),
     prisma.match.count(),
+    prisma.shopOrder.count({ where: { status: "NEW" } }).catch(() => 0),
     getActiveSeason().catch(() => null),
     getOurTeam().catch(() => null),
   ]);
@@ -75,6 +76,11 @@ export default async function AdminHomePage() {
         <Link href="/admin/sezone" className="rounded-xl border border-navy/10 bg-white p-5 hover:border-gold">
           <p className="text-sm text-muted">Aktivna sezona</p>
           <p className="mt-2 font-display text-lg text-navy">{season?.name ?? "Nije označena"}</p>
+        </Link>
+        <Link href="/admin/shop/narudzbe" className="rounded-xl border border-navy/10 bg-white p-5 hover:border-gold">
+          <p className="text-sm text-muted">Shop narudžbe</p>
+          <p className="mt-2 font-display text-3xl">{newShopOrders}</p>
+          <p className="mt-1 text-xs text-muted">nove, čekaju kontakt</p>
         </Link>
         <Link href="/admin/liga" className="rounded-xl border border-navy/10 bg-white p-5 hover:border-gold sm:col-span-2">
           <p className="text-sm text-muted">SportDC sync</p>

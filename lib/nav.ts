@@ -7,6 +7,7 @@ export const NAV_LINKS = [
   { href: "/liga", label: "Liga" },
   { href: "/rezultati", label: "Rezultati" },
   { href: "/istorija", label: "Istorija" },
+  { href: "/shop", label: "Shop" },
 ] as const;
 
 export const SITE_NAME = "FK Pobjeda Triješnica";

@@ -19,7 +19,9 @@ const TYPE_EXT: Record<string, string> = {
   "image/gif": ".gif",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
-const LOCAL_UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "players");
+const LOCAL_UPLOAD_ROOT = path.join(process.cwd(), "public", "uploads");
+
+export type UploadFolder = "players" | "shop";
 
 type UploadEnv = {
   BLOB_READ_WRITE_TOKEN?: string;
@@ -60,7 +62,7 @@ export function isUploadedPhoto(value: FormDataEntryValue | null): value is File
   );
 }
 
-export async function uploadPlayerPhoto(file: File): Promise<string> {
+export async function uploadPublicImage(file: File, folder: UploadFolder = "players"): Promise<string> {
   const type = resolvePhotoContentType(file);
   if (!type) {
     throw new ValidationError("Dozvoljeni formati fotografije: JPEG, PNG, WebP i GIF");
@@ -79,7 +81,7 @@ export async function uploadPlayerPhoto(file: File): Promise<string> {
     })
   ) {
     try {
-      const blob = await put(`players/${Date.now()}-${originalName}`, buffer, {
+      const blob = await put(`${folder}/${Date.now()}-${originalName}`, buffer, {
         access: "public",
         addRandomSuffix: true,
         contentType: type,
@@ -107,9 +109,14 @@ export async function uploadPlayerPhoto(file: File): Promise<string> {
     );
   }
 
-  await mkdir(LOCAL_UPLOAD_DIR, { recursive: true });
+  const localDir = path.join(LOCAL_UPLOAD_ROOT, folder);
+  await mkdir(localDir, { recursive: true });
   const ext = TYPE_EXT[type] ?? ".jpg";
   const filename = `${Date.now()}-${randomBytes(4).toString("hex")}${ext}`;
-  await writeFile(path.join(LOCAL_UPLOAD_DIR, filename), buffer);
-  return `/uploads/players/${filename}`;
+  await writeFile(path.join(localDir, filename), buffer);
+  return `/uploads/${folder}/${filename}`;
+}
+
+export async function uploadPlayerPhoto(file: File): Promise<string> {
+  return uploadPublicImage(file, "players");
 }

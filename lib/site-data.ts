@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { getClubHistory } from "./history";
+import { getShopProducts } from "./shop";
 import { getSchedule, getStandings } from "./league";
 import { getPlayers } from "./players";
 import { CACHE_TAGS, PUBLIC_REVALIDATE_SECONDS } from "./query-cache";
@@ -33,4 +34,10 @@ export const getCachedHistory = unstable_cache(
   () => getClubHistory(),
   ["public-history"],
   { revalidate: PUBLIC_REVALIDATE_SECONDS, tags: [CACHE_TAGS.history] },
+);
+
+export const getCachedShopProducts = unstable_cache(
+  () => getShopProducts(),
+  ["public-shop"],
+  { revalidate: PUBLIC_REVALIDATE_SECONDS, tags: [CACHE_TAGS.shop] },
 );

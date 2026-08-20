@@ -8,6 +8,7 @@ export const CACHE_TAGS = {
   stats: "stats",
   fantasy: "fantasy",
   history: "history",
+  shop: "shop",
 } as const;
 
 export function revalidatePublic(...tags: Array<(typeof CACHE_TAGS)[keyof typeof CACHE_TAGS]>) {

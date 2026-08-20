@@ -47,9 +47,11 @@ next-env.d.ts
 # local embedded postgres data (development only)
 /.local-pg
 
-# local player photo uploads (Vercel Blob is used in production)
+# local photo uploads (Vercel Blob is used in production)
 /public/uploads/players/*
 !/public/uploads/players/.gitkeep
+/public/uploads/shop/*
+!/public/uploads/shop/.gitkeep
 
 # playwright
 /test-results

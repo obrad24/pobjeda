@@ -51,6 +51,12 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
+test("shop stranica se učitava", async ({ page }) => {
+  const response = await page.goto("/shop");
+  expect(response?.ok()).toBeTruthy();
+  await expect(page.getByRole("heading", { name: "Shop" })).toBeVisible();
+});
+
 test("fantasy stranica se učitava", async ({ page }) => {
   const response = await page.goto("/fantasy");
   expect(response?.ok()).toBeTruthy();

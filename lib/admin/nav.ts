@@ -6,6 +6,7 @@ export const ADMIN_NAV = [
   { href: "/admin/liga", label: "Liga" },
   { href: "/admin/sezone", label: "Sezone" },
   { href: "/admin/istorija", label: "Istorija" },
+  { href: "/admin/shop", label: "Shop" },
   { href: "/admin/podesavanja", label: "Podešavanja" },
 ] as const;
 

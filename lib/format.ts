@@ -153,3 +153,10 @@ export function seasonLabel(name: string): string {
 export function playerFullName(player: { firstName: string; lastName: string }): string {
   return `${player.firstName} ${player.lastName}`;
 }
+
+export function formatPriceKm(value: number): string {
+  return `${new Intl.NumberFormat("sr-Latn-BA", {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(value)} KM`;
+}
